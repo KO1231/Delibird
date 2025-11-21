@@ -52,12 +52,14 @@ def success_response(status: HTTPStatus, body: str | dict, content_type: str = N
     }
 
 
-def redirect_response(redirect_url: str):
+def redirect_response(redirect_url: str, status: HTTPStatus = HTTPStatus.FOUND):
+    if not status.is_redirection:
+        raise ValueError(f"Status code {status} is not a redirection status.")
     headers = _generate_response_headers()
     del headers["Content-Type"]
 
     return {
-        "statusCode": HTTPStatus.FOUND.value,
+        "statusCode": status.value,
         "headers": {
             **headers,
             "Location": redirect_url
