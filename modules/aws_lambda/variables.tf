@@ -22,3 +22,17 @@ variable "memory_size" {
   description = "Lambda function memory size in MB"
   type        = number
 }
+
+variable "ddb_link_table" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}
+
+variable "role_redirect_request" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}

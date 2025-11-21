@@ -1,7 +1,33 @@
+# Lambda Layerのソースディレクトリとビルド出力先
+locals {
+  layer_source_dir = "${path.root}/../../lambda/layers/common"
+  layer_build_dir  = "${path.root}/.build/common_layer"
+}
+
+# ビルドスクリプトを実行してLayerをビルド
+resource "null_resource" "build_common_layer" {
+  triggers = {
+    requirements = filemd5("${local.layer_source_dir}/python/requirements.txt")
+    build_script = filemd5("${local.layer_source_dir}/build.sh")
+    # カスタムコードの変更を検出
+    custom_code = sha256(join("", [
+      for f in fileset("${local.layer_source_dir}/python", "**/*.py") :
+      filesha256("${local.layer_source_dir}/python/${f}")
+    ]))
+  }
+
+  provisioner "local-exec" {
+    command     = "chmod +x ${local.layer_source_dir}/build.sh && BUILD_OUTPUT_DIR=${path.root}/.build ${local.layer_source_dir}/build.sh"
+    working_dir = path.root
+  }
+}
+
 data "archive_file" "common_layer" {
   type        = "zip"
-  source_dir  = "../../lambda/layers/common"
+  source_dir  = local.layer_build_dir
   output_path = "${path.root}/.build/common_layer.zip"
+
+  depends_on = [null_resource.build_common_layer]
 }
 
 resource "aws_lambda_layer_version" "common" {
