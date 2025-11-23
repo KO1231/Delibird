@@ -2,11 +2,11 @@ from http import HTTPStatus
 
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent, event_source
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from ddb.models.delibird_link import DelibirdLinkTableModel
-from parser import parse_request_path, parse_origin
 from util.logger_util import setup_logger
-from util.redirect_util import redirect_response, error_response
+from util.response_util import redirect_response, error_response
+
+from parser import parse_request_path, parse_origin
 
 logger = setup_logger("redirect_request")
 

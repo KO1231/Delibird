@@ -19,8 +19,9 @@ resource "aws_lambda_function" "redirect_request" {
 
   environment {
     variables = {
-      DELIBIRD_ENV    = var.environment
-      LINK_TABLE_NAME = var.ddb_link_table.name
+      DELIBIRD_ENV        = var.environment
+      LINK_TABLE_NAME     = var.ddb_link_table.name
+      STATIC_RESOURCE_DIR = "/opt/delibird/static"
     }
   }
 

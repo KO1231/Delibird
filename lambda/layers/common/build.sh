@@ -71,14 +71,30 @@ if [ "$copied_count" -eq 0 ]; then
     exit 1
 fi
 
+# 静的リソースファイルをコピー
+STATIC_SOURCE="${SCRIPT_DIR}/../../../static"
+if [ -d "${STATIC_SOURCE}" ]; then
+    echo "Copying static resources..."
+    mkdir -p "${BUILD_DIR}/delibird/static"
+    cp -r "${STATIC_SOURCE}"/* "${BUILD_DIR}/delibird/static/" 2>/dev/null || echo "No static resources found in static directory"
+else
+    echo "Warning: Static resources directory not found at ${STATIC_SOURCE}"
+fi
+
 echo "Common layer build complete: ${BUILD_DIR}"
 
 # ビルド成果物の内容を表示
 echo ""
 echo "Build output contents:"
 echo "----------------------"
+echo "Python packages:"
 ls -lh "${PYTHON_DIR}" | head -20
 echo ""
+if [ -d "${BUILD_DIR}/delibird/static" ]; then
+    echo "Static resources:"
+    find "${BUILD_DIR}/delibird/static" -type f -exec ls -lh {} \; | head -20
+    echo ""
+fi
 echo "Total size:"
 du -sh "${BUILD_DIR}"
 

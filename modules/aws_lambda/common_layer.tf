@@ -1,7 +1,8 @@
 # Lambda Layerのソースディレクトリとビルド出力先
 locals {
-  layer_source_dir = "${path.root}/../../lambda/layers/common"
-  layer_build_dir  = "${path.root}/.build/common_layer"
+  layer_source_dir    = "${path.root}/../../lambda/layers/common"
+  layer_build_dir     = "${path.root}/.build/common_layer"
+  static_resource_dir = "${path.root}/../../static"
 }
 
 # ビルドスクリプトを実行してLayerをビルド
@@ -13,6 +14,10 @@ resource "null_resource" "build_common_layer" {
     custom_code = sha256(join("", [
       for f in fileset("${local.layer_source_dir}/python", "**/*.py") :
       filesha256("${local.layer_source_dir}/python/${f}")
+    ]))
+    static_files = sha256(join("", [
+      for f in fileset("${local.static_resource_dir}", "**/*") :
+      filesha256("${local.static_resource_dir}/${f}")
     ]))
   }
 

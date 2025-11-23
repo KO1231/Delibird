@@ -1,8 +1,20 @@
 import json
 import os
 from http import HTTPStatus
+from typing import Optional
+
+from util.static_resource_util import load_static_html
 
 IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
+
+
+def _load_error_html(status: HTTPStatus) -> Optional[str]:
+    if not (status.is_client_error or status.is_server_error):
+        raise ValueError("Status code must be a client error (4xx) or server error (5xx).")
+
+    # 該当するステータスコードのHTMLを探す
+    html_content = load_static_html(f"error/{status.value}.html")
+    return html_content
 
 
 def _generate_response_headers(content_type: str = None) -> dict[str, str]:
@@ -19,6 +31,7 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
 
     csp = [
         "default-src 'none'",
+        "style-src https://static.kazutech.jp/scheduler/css/",
         "frame-ancestors 'none'",
         "base-uri 'none'",
         "upgrade-insecure-requests"
@@ -37,10 +50,15 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
 
 
 def error_response(status: HTTPStatus):
+    _html = _load_error_html(status)
+
+    headers = _generate_response_headers("text/html;charset=utf-8" if _html else None)
+    body = _html or json.dumps({"message": status.phrase})
+
     return {
         "statusCode": status.value,
-        "headers": _generate_response_headers(),
-        "body": json.dumps({"message": status.phrase})
+        "headers": headers,
+        "body": body
     }
 
 
