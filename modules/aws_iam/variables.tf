@@ -9,3 +9,10 @@ variable "ddb_link_table" {
     arn  = string
   })
 }
+
+variable "lambda_redirect_request" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}

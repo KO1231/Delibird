@@ -3,6 +3,8 @@
 /.env
 
 /environments/*/config.yml
+!/environments/sample/config.yml
+
 /environments/*/.terraform
 /environments/*/.build
 /**/*.tfstate

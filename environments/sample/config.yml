@@ -1,0 +1,6 @@
+aws:
+  region: ??? # Change to your preferred region. Recommend to use same region as your S3 bucket.
+  profile: ??? # Change to your AWS CLI profile name.
+  s3:
+    bucket_name: ??? # Change to your S3 bucket name(for static resource).
+    remote_base_path: ??? # Change to your preferred remote base path in the S3 bucket.
