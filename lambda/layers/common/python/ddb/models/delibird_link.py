@@ -116,5 +116,5 @@ class DelibirdLinkTableModel(Model):
             expired_origin=result.expired_origin,
             query_omit=result.query_omit,
             query_whitelist=result.query_whitelist,
-            max_uses=int(result.max_uses)
+            max_uses=int(result.max_uses) if result.max_uses is not None else None
         )
