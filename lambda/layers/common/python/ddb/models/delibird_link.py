@@ -32,6 +32,7 @@ class DelibirdLinkInactiveReason:
 @dataclass
 class DelibirdLink:
     _model: "DelibirdLinkTableModel"
+    domain: str
     link_slug: str
     link_origin: str
     status: HTTPStatus
@@ -78,9 +79,10 @@ class DelibirdLinkTableModel(Model):
         table_name = os.environ["LINK_TABLE_NAME"]
         region = _REGION
 
-    slug = UnicodeAttribute(hash_key=True)
-    created_at = UTCDateTimeAttribute(range_key=True)
+    domain = UnicodeAttribute(hash_key=True)
+    slug = UnicodeAttribute(range_key=True)
 
+    created_at = UTCDateTimeAttribute(null=False)
     origin = UnicodeAttribute(null=False)
     status = NumberAttribute(null=False)
     disabled = BooleanAttribute(null=False, default=False)
@@ -93,34 +95,26 @@ class DelibirdLinkTableModel(Model):
     max_uses = NumberAttribute(null=True)
 
     @classmethod
-    def get_by_slug(cls, slug: str) -> Optional[DelibirdLink]:
+    def get_from_request(cls, domain: str, slug: str) -> Optional[DelibirdLink]:
         try:
-            results = list(cls.query(
-                hash_key=slug,
-                filter_condition=(cls.disabled == False),
-                consistent_read=True
-            ))
-            if not results:
-                return None
-
-            if len(results) == 1:
-                result = results[0]
-            else:
-                result = max(results, key=lambda x: x.created_at)
-
-            return DelibirdLink(
-                _model=result,
-                link_slug=result.slug,
-                link_origin=result.origin,
-                status=HTTPStatus(result.status),
-                disabled=result.disabled,
-                uses=result.uses,
-                expiration_date=result.expiration_date,
-                expired_origin=result.expired_origin,
-                query_omit=result.query_omit,
-                query_whitelist=result.query_whitelist,
-                max_uses=result.max_uses
-            )
+            result = cls.get(hash_key=domain, range_key=slug, consistent_read=True)
+        except cls.DoesNotExist:
+            return None
         except Exception as e:
-            logger.exception(f"Failed to fetch delibird link data for slug: {slug}, Table: {cls.Meta.table_name}")
+            logger.exception(f"Failed to fetch delibird link data for domain: {domain}, slug: {slug}, Table: {cls.Meta.table_name}")
             raise RuntimeError('Failed to fetch delibird link data.') from e
+
+        return DelibirdLink(
+            _model=result,
+            domain=result.domain,
+            link_slug=result.slug,
+            link_origin=result.origin,
+            status=HTTPStatus(result.status),
+            disabled=result.disabled,
+            uses=int(result.uses),
+            expiration_date=result.expiration_date,
+            expired_origin=result.expired_origin,
+            query_omit=result.query_omit,
+            query_whitelist=result.query_whitelist,
+            max_uses=int(result.max_uses)
+        )

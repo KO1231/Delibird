@@ -2,16 +2,16 @@ resource "aws_dynamodb_table" "link_table" {
   name         = "Delibird-${var.environment}-DelibirdLinkTable"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "slug"
-  range_key = "created_at"
+  hash_key  = "domain"
+  range_key = "slug"
 
   attribute {
-    name = "slug"
+    name = "domain"
     type = "S"
   }
 
   attribute {
-    name = "created_at"
+    name = "slug"
     type = "S"
   }
 }

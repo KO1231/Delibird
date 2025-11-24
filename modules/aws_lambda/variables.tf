@@ -36,3 +36,8 @@ variable "role_redirect_request" {
     arn  = string
   })
 }
+
+variable "allowed_domain" {
+  description = "Allowed domain for the Lambda function"
+  type        = list(string)
+}

@@ -22,6 +22,7 @@ resource "aws_lambda_function" "redirect_request" {
       DELIBIRD_ENV        = var.environment
       LINK_TABLE_NAME     = var.ddb_link_table.name
       STATIC_RESOURCE_DIR = "/opt/delibird/static"
+      ALLOWED_DOMAIN      = join(",", var.allowed_domain)
     }
   }
 

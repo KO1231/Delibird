@@ -25,7 +25,7 @@ resource "aws_iam_role_policy" "lambda_redirect_request" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:Query",
+          "dynamodb:GetItem",
           "dynamodb:UpdateItem",
         ]
         Resource = [
