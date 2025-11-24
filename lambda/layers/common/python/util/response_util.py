@@ -31,7 +31,7 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
 
     csp = [
         "default-src 'none'",
-        "style-src https://static.kazutech.jp/scheduler/css/",
+        "style-src https://static.kazutech.jp/l/css/",
         "frame-ancestors 'none'",
         "base-uri 'none'",
         "upgrade-insecure-requests"

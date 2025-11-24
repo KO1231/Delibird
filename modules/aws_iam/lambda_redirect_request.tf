@@ -26,6 +26,7 @@ resource "aws_iam_role_policy" "lambda_redirect_request" {
         Effect = "Allow"
         Action = [
           "dynamodb:Query",
+          "dynamodb:UpdateItem",
         ]
         Resource = [
           var.ddb_link_table.arn,
