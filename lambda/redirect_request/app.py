@@ -73,6 +73,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         logger.exception(f"Invalid URL stored in link_origin for slug: {request_path}, URL: {origin_candidate}")
         return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
 
+    # クエリパラメータの付与
     if not link.query_omit:
         logger.info(f"Link(slug: {request_path}) has disabled query omission. Appending query parameters.")
         try:
