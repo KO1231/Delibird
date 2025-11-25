@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -90,7 +91,7 @@ class DelibirdLinkTableModel(Model):
 
     expiration_date = UTCDateTimeAttribute(null=True)
     expired_origin = UnicodeAttribute(null=True)
-    query_omit = BooleanAttribute(null=False, default=False)
+    query_omit = BooleanAttribute(null=False, default=True)
     query_whitelist = UnicodeSetAttribute(null=True)
     max_uses = NumberAttribute(null=True)
 
@@ -118,3 +119,9 @@ class DelibirdLinkTableModel(Model):
             query_whitelist=result.query_whitelist,
             max_uses=int(result.max_uses) if result.max_uses is not None else None
         )
+
+    def __str__(self):
+        try:
+            return json.dumps({k: list(v.values())[0] for k, v in self.serialize().items()}, indent=2)
+        except Exception:
+            return super().__str__()
