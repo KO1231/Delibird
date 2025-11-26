@@ -65,7 +65,6 @@ body {
     color: #999;
 }
 
-/* 各エラーコード別のグラデーションと色 */
 body.error-400 {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
