@@ -8,6 +8,7 @@ from http import HTTPStatus
 from typing import Optional
 
 from pynamodb.attributes import UnicodeAttribute, NumberAttribute, UTCDateTimeAttribute, BooleanAttribute, UnicodeSetAttribute
+from pynamodb.exceptions import UpdateError
 from pynamodb.models import Model
 
 from util.date_util import get_jst_datetime_now
@@ -65,14 +66,17 @@ class DelibirdLink:
                 reason=f"Link has exceeded max uses: {self.max_uses}, current uses: {self.uses}.")
         return True, None
 
-    def increment_uses(self) -> None:
+    def increment_uses(self) -> bool:
         """リンクの使用回数をインクリメントする"""
-        self._model.update(
-            actions=[
-                DelibirdLinkTableModel.uses.add(1)
-            ]
-        )
+        try:
+            self._model.update(
+                actions=[DelibirdLinkTableModel.uses.add(1)],
+                condition=(DelibirdLinkTableModel.uses < self.max_uses) if self.max_uses else None
+            )
+        except UpdateError:
+            return False
         self.uses += 1
+        return True
 
 
 class DelibirdLinkTableModel(Model):

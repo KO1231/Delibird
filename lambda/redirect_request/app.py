@@ -88,16 +88,24 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         logger.info(f"Link(domain: {domain}, slug: {request_path}) has disabled query omission. Appending query parameters.")
         try:
             origin = queried_origin(origin, event.resolved_query_string_parameters, link.query_whitelist)
+        except ValueError:
+            logger.exception(f"Invalid query parameters for domain: {domain}, slug: {request_path}, URL: {origin}")
+            return error_response(HTTPStatus.BAD_REQUEST)
         except Exception:
             logger.exception(f"Failed to append query parameters for domain: {domain}, slug: {request_path}, URL: {origin}")
             return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
 
     # リンクの使用回数をインクリメント
     try:
-        link.increment_uses()
+        update_success = link.increment_uses()
     except Exception:
         logger.exception(f"Failed to increment uses for domain: {domain}, slug: {request_path}")
         return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    if not update_success:
+        # 最大使用回数が競合リクエストで超過した場合
+        logger.info(f"Link(domain: {domain}, slug: {request_path}) failed to increment uses due to max uses condition.")
+        return error_response(HTTPStatus.NOT_FOUND)
 
     logger.info(f"Redirect to {origin} for domain: {domain}, slug: {request_path} (status: {link.status})")
     return redirect_response(origin, link.status)

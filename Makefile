@@ -25,7 +25,8 @@ plan-%:
 		exit 1; \
 	fi && \
 	if [ -d "$(MAKEFILE_DIR)/environments/$$ENV_NAME/.terraform" ]; then \
-		cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform plan; \
+	  	rm -f $(MAKEFILE_DIR)/environments/$$ENV_NAME/.plan && \
+		cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform plan -out .plan; \
 	else \
 		echo "Error: Terraform is not initialized for environment '$$ENV_NAME'. Please run 'make init-$$ENV_NAME' first."; \
 		exit 1; \
@@ -36,7 +37,6 @@ plan:
 	@make plan-prod
 
 apply-%:
-	@make plan-$*
-
 	ENV_NAME=$* && \
-	cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform apply -auto-approve
+	cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform show .plan && terraform apply .plan && \
+	rm -f .plan

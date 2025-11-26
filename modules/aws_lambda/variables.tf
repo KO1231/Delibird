@@ -41,3 +41,8 @@ variable "allowed_domain" {
   description = "Allowed domain for the Lambda function"
   type        = list(string)
 }
+
+variable "reserved_concurrent_executions" {
+  description = "Reserved concurrent executions for Lambda function (for cost and DDoS protection)"
+  type        = number
+}

@@ -7,5 +7,6 @@
 
 /environments/*/.terraform
 /environments/*/.build
+/environments/*/.plan
 /**/*.tfstate
 /**/*.tfstate.backup
