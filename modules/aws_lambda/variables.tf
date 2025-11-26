@@ -3,6 +3,10 @@ variable "environment" {
   type        = string
 }
 
+variable "environment_var" {
+  type = string
+}
+
 variable "runtime" {
   description = "Lambda runtime version"
   type        = string

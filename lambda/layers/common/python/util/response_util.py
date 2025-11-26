@@ -3,9 +3,11 @@ import os
 from http import HTTPStatus
 from typing import Optional
 
+from util.environment_util import get_env_var
 from util.static_resource_util import load_static_html
 
-IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
+_IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
+_COMMIT_HASH = str(get_env_var("COMMIT_HASH", "")) if _IS_DEV else ""
 
 
 def _load_error_html(status: HTTPStatus) -> Optional[str]:
@@ -38,9 +40,10 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
     ]
     headers["Content-Security-Policy"] = "; ".join(csp)
 
-    if IS_DEV:
+    if _IS_DEV:
         # 開発環境(local)用にCORS許可
         headers["X-Dev"] = "true"
+        headers["X-Commit-Hash"] = _COMMIT_HASH
         headers["Access-Control-Allow-Origin"] = "*"
         headers["Access-Control-Allow-Methods"] = "OPTIONS, POST"
         headers["Access-Control-Allow-Headers"] = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Dev"
