@@ -26,7 +26,12 @@ plan-%:
 	fi && \
 	if [ -d "$(MAKEFILE_DIR)/environments/$$ENV_NAME/.terraform" ]; then \
 	  	rm -f $(MAKEFILE_DIR)/environments/$$ENV_NAME/.plan && \
-		cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform plan -out .plan; \
+		cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && \
+		terraform plan -out .plan && \
+		APPLYABLE=$$(terraform show -json .plan | jq '.applyable') && \
+		if [ "$$APPLYABLE" = "false" ]; then \
+			rm -f .plan; \
+		fi; \
 	else \
 		echo "Error: Terraform is not initialized for environment '$$ENV_NAME'. Please run 'make init-$$ENV_NAME' first."; \
 		exit 1; \
