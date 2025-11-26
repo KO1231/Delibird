@@ -73,8 +73,10 @@ class DelibirdLink:
                 actions=[DelibirdLinkTableModel.uses.add(1)],
                 condition=(DelibirdLinkTableModel.uses < self.max_uses) if self.max_uses else None
             )
-        except UpdateError:
-            return False
+        except UpdateError as e:
+            if e.cause_response_code == "ConditionalCheckFailedException":
+                return False
+            raise e
         self.uses += 1
         return True
 
