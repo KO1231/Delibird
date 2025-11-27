@@ -44,7 +44,8 @@ resource "aws_iam_role_policy" "lambda_redirect_request" {
             "dynamodb:Attributes" = [
               "domain",
               "slug",
-              "uses"
+              "uses",
+              "max_uses",
             ]
           }
         }

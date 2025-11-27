@@ -72,7 +72,7 @@ class DelibirdLink:
         try:
             self._model.update(
                 actions=[DelibirdLinkTableModel.uses.add(1)],
-                condition=(DelibirdLinkTableModel.uses < self.max_uses) if self.max_uses else None
+                condition=(DelibirdLinkTableModel.uses < DelibirdLinkTableModel.max_uses) if DelibirdLinkTableModel.max_uses else None
             )
         except UpdateError as e:
             if e.cause_response_code == "ConditionalCheckFailedException":
