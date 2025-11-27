@@ -36,7 +36,9 @@
     - Create a environments file in environments directory based on sample environment.
 
 5. Initialize Terraform
-   If you create `dev` environment (create `environments/dev`), run following command with `dev` environment name.
+    - If you create `dev` environment (create `environments/dev`), run following command with `dev` environment name.
+      <br>
+
    ```bash
    make init-{environment name}
    ```
