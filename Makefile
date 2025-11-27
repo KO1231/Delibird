@@ -9,6 +9,8 @@ init-%:
 	if [ -f "$(MAKEFILE_DIR)/environments/$$ENV_NAME/config.yml" ]; then \
 		if [ ! -d "$(MAKEFILE_DIR)/environments/$$ENV_NAME/.terraform" ]; then \
 			cd $(MAKEFILE_DIR)/environments/$$ENV_NAME && terraform init; \
+			chmod +x $(MAKEFILE_DIR)/lambda/layers/common/build.sh && \
+	  		BUILD_OUTPUT_DIR=$(MAKEFILE_DIR)/environments/$$ENV_NAME/.build $(MAKEFILE_DIR)/lambda/layers/common/build.sh; \
 		else \
 			echo "Terraform is already initialized for environment '$$ENV_NAME'."; \
 		fi; \
