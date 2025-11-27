@@ -26,12 +26,29 @@ resource "aws_iam_role_policy" "lambda_redirect_request" {
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
+        ]
+        Resource = [
+          var.ddb_link_table.arn,
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "dynamodb:UpdateItem",
         ]
         Resource = [
           var.ddb_link_table.arn,
         ]
-      }
+        Condition = {
+          "ForAllValues:StringEquals" = {
+            "dynamodb:Attributes" = [
+              "domain",
+              "slug",
+              "uses"
+            ]
+          }
+        }
+      },
     ]
   })
 }
