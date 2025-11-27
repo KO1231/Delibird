@@ -7,10 +7,11 @@ from enum import Enum, auto
 from http import HTTPStatus
 from typing import Optional
 
-from pynamodb.attributes import UnicodeAttribute, NumberAttribute, UTCDateTimeAttribute, BooleanAttribute, UnicodeSetAttribute
+from pynamodb.attributes import UnicodeAttribute, NumberAttribute, BooleanAttribute, UnicodeSetAttribute
 from pynamodb.exceptions import UpdateError
 from pynamodb.models import Model
 
+from ddb.datetime_attribute import DateTimeAttribute
 from util.date_util import get_jst_datetime_now
 from util.logger_util import setup_logger
 
@@ -71,7 +72,7 @@ class DelibirdLink:
         try:
             self._model.update(
                 actions=[DelibirdLinkTableModel.uses.add(1)],
-                condition=(DelibirdLinkTableModel.uses < self.max_uses) if self.max_uses else None
+                condition=(DelibirdLinkTableModel.uses < DelibirdLinkTableModel.max_uses) if DelibirdLinkTableModel.max_uses else None
             )
         except UpdateError as e:
             if e.cause_response_code == "ConditionalCheckFailedException":
@@ -89,13 +90,13 @@ class DelibirdLinkTableModel(Model):
     domain = UnicodeAttribute(hash_key=True)
     slug = UnicodeAttribute(range_key=True)
 
-    created_at = UTCDateTimeAttribute(null=False)
+    created_at = DateTimeAttribute(null=False)
     origin = UnicodeAttribute(null=False)
     status = NumberAttribute(null=False)
     disabled = BooleanAttribute(null=False, default=False)
     uses = NumberAttribute(null=False, default=0)
 
-    expiration_date = UTCDateTimeAttribute(null=True)
+    expiration_date = DateTimeAttribute(null=True)
     expired_origin = UnicodeAttribute(null=True)
     query_omit = BooleanAttribute(null=False, default=True)
     query_whitelist = UnicodeSetAttribute(null=True)

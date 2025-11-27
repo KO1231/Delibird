@@ -2,8 +2,8 @@
 /**/__pycache__
 /.env
 
-/environments/*/config.yml
-!/environments/sample/config.yml
+/environments/*
+!/environments/sample
 
 /environments/*/.terraform
 /environments/*/.build
