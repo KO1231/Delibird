@@ -23,11 +23,12 @@ module "aws_iam" {
 module "aws_lambda" {
   source = "../../modules/aws_lambda"
 
-  environment   = local.environment
-  runtime       = "python3.13"
-  architectures = ["arm64"]
-  memory_size   = 512
-  timeout       = 10
+  environment     = local.environment
+  environment_var = "{}" # TODO: Change values as needed
+  runtime         = "python3.13"
+  architectures   = ["arm64"]
+  memory_size     = 512
+  timeout         = 10
 
   ddb_link_table = {
     name = module.aws_dynamodb.link_table.name
@@ -38,6 +39,9 @@ module "aws_lambda" {
     name = module.aws_iam.role_lambda_redirect_request.name
     arn  = module.aws_iam.role_lambda_redirect_request.arn
   }
+
+  allowed_domain                 = local.config["allowed_domain"]
+  reserved_concurrent_executions = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
 }
 
 module "aws_s3" {
