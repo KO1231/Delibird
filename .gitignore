@@ -2,3 +2,11 @@
 /**/__pycache__
 /.env
 
+/environments/*/config.yml
+!/environments/sample/config.yml
+
+/environments/*/.terraform
+/environments/*/.build
+/environments/*/.plan
+/**/*.tfstate
+/**/*.tfstate.backup
