@@ -9,6 +9,7 @@ from typing import Optional
 
 from pynamodb.attributes import UnicodeAttribute, NumberAttribute, BooleanAttribute, UnicodeSetAttribute
 from pynamodb.exceptions import UpdateError
+from pynamodb.expressions.operand import Path
 from pynamodb.models import Model
 
 from ddb.datetime_attribute import DateTimeAttribute
@@ -72,7 +73,9 @@ class DelibirdLink:
         try:
             self._model.update(
                 actions=[DelibirdLinkTableModel.uses.add(1)],
-                condition=(DelibirdLinkTableModel.uses < DelibirdLinkTableModel.max_uses) if DelibirdLinkTableModel.max_uses else None
+                condition=(DelibirdLinkTableModel.max_uses.does_not_exist()) |
+                          (Path(DelibirdLinkTableModel.max_uses).is_type("NULL")) |
+                          (DelibirdLinkTableModel.uses < DelibirdLinkTableModel.max_uses)
             )
         except UpdateError as e:
             if e.cause_response_code == "ConditionalCheckFailedException":
