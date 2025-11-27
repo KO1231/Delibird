@@ -8,6 +8,7 @@ from http import HTTPStatus
 from typing import Optional
 
 from pynamodb.attributes import UnicodeAttribute, NumberAttribute, BooleanAttribute, UnicodeSetAttribute
+from pynamodb.constants import NULL
 from pynamodb.exceptions import UpdateError
 from pynamodb.expressions.operand import Path
 from pynamodb.models import Model
@@ -74,7 +75,7 @@ class DelibirdLink:
             self._model.update(
                 actions=[DelibirdLinkTableModel.uses.add(1)],
                 condition=(DelibirdLinkTableModel.max_uses.does_not_exist()) |
-                          (Path(DelibirdLinkTableModel.max_uses).is_type("NULL")) |
+                          (Path(DelibirdLinkTableModel.max_uses).is_type(NULL)) |
                           (DelibirdLinkTableModel.uses < DelibirdLinkTableModel.max_uses)
             )
         except UpdateError as e:
