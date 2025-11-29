@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 from jinja2 import Template
 
@@ -12,7 +12,7 @@ _IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
 _STATIC_RESOURCE_DIR = Path(os.environ.get("STATIC_RESOURCE_DIR", str(Path(__file__).parent.parent.parent.parent.parent / "static"))).resolve()
 
 
-def load_static_html(relative_path: str, template_contexts: dict[str, str] = None) -> Optional[str]:
+def load_static_html(relative_path: str, template_contexts: dict[str, Any] = None) -> Optional[str]:
     file_path = (_STATIC_RESOURCE_DIR / relative_path).resolve()
     if not os.path.commonprefix([str(_STATIC_RESOURCE_DIR), str(file_path)]) == str(_STATIC_RESOURCE_DIR):
         raise ValueError("Invalid relative path; attempts to access outside the static resource directory.")
