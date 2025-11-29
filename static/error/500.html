@@ -16,7 +16,9 @@
                 <p>&copy; 2025 Kazuhiro Oka</p>
             </footer>
         </div>
-        {{STATIC_FOOTER}}
+        {%- if STATIC_FOOTER is defined %}
+        <div class="env-info"><p>{{STATIC_FOOTER}}</p></div>
+        {%- endif %}
     </body>
 </html>
 

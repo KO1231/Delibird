@@ -1,3 +1,4 @@
+import html
 import json
 import os
 from http import HTTPStatus
@@ -8,6 +9,7 @@ from util.static_resource_util import load_static_html
 
 _IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
 _COMMIT_HASH = str(get_env_var("COMMIT_HASH", "")) if _IS_DEV else ""
+_STATIC_FOOTER: Optional[str] = html.escape(get_env_var("STATIC_FOOTER", ""))
 
 
 def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
@@ -15,7 +17,10 @@ def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
         raise ValueError("Status code must be a client error (4xx) or server error (5xx).")
 
     # 該当するステータスコードのHTMLを探す
-    html_content = load_static_html(f"error/{status.value}.html")
+    html_content = load_static_html(
+        f"error/{status.value}.html",
+        {"STATIC_FOOTER": _STATIC_FOOTER} if _STATIC_FOOTER else None
+    )
     return html_content, html_content is not None
 
 
