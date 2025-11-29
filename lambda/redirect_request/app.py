@@ -33,7 +33,12 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         return error_response(HTTPStatus.NOT_FOUND)
 
     # pathからリンク情報を取得
-    link = DelibirdLinkTableModel.get_from_request(domain, request_path)
+    try:
+        link = DelibirdLinkTableModel.get_from_request(domain, request_path)
+    except Exception:
+        logger.exception(
+            f"Failed to fetch delibird link data for domain: {domain}, slug: {request_path}, Table: {DelibirdLinkTableModel.Meta.table_name}")
+        return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
     interrupt_origin = None
 
     ## リンクが存在しない場合
