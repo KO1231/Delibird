@@ -10,16 +10,16 @@ _IS_DEV = (os.environ.get("DELIBIRD_ENV") == "dev")
 _COMMIT_HASH = str(get_env_var("COMMIT_HASH", "")) if _IS_DEV else ""
 
 
-def _load_error_html(status: HTTPStatus) -> Optional[str]:
+def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
     if not (status.is_client_error or status.is_server_error):
         raise ValueError("Status code must be a client error (4xx) or server error (5xx).")
 
     # 該当するステータスコードのHTMLを探す
     html_content = load_static_html(f"error/{status.value}.html")
-    return html_content
+    return html_content, html_content is not None
 
 
-def _generate_response_headers(content_type: str = None) -> dict[str, str]:
+def _generate_response_headers(content_type: str = None, use_css: bool = False) -> dict[str, str]:
     headers = {
         "Content-Type": content_type or "application/json;charset=utf-8",
         "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
@@ -33,12 +33,12 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
 
     csp = [
         "default-src 'none'",
-        "style-src https://static.kazutech.jp/l/css/",
+        "style-src https://static.kazutech.jp/l/css/" if use_css else None,
         "frame-ancestors 'none'",
         "base-uri 'none'",
         "upgrade-insecure-requests"
     ]
-    headers["Content-Security-Policy"] = "; ".join(csp)
+    headers["Content-Security-Policy"] = "; ".join(filter(None, csp))
 
     if _IS_DEV:
         # 開発環境(local)用にCORS許可
@@ -53,10 +53,10 @@ def _generate_response_headers(content_type: str = None) -> dict[str, str]:
 
 
 def error_response(status: HTTPStatus):
-    _html = _load_error_html(status)
+    _html, load_success = _load_error_html(status)
 
-    headers = _generate_response_headers("text/html;charset=utf-8" if _html else None)
-    body = _html or json.dumps({"message": status.phrase})
+    headers = _generate_response_headers("text/html;charset=utf-8" if load_success else None, use_css=load_success)
+    body = _html if load_success else json.dumps({"message": status.phrase})
 
     return {
         "statusCode": status.value,
