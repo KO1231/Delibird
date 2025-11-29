@@ -16,3 +16,10 @@ variable "lambda_redirect_request" {
     arn  = string
   })
 }
+
+variable "lambda_admin_portal" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}

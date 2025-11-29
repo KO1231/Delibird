@@ -18,6 +18,11 @@ module "aws_iam" {
     name = module.aws_lambda.lambda_redirect_request.function_name
     arn  = module.aws_lambda.lambda_redirect_request.arn
   }
+
+  lambda_admin_portal = {
+    name = module.aws_lambda.lambda_admin_portal.function_name
+    arn  = module.aws_lambda.lambda_admin_portal.arn
+  }
 }
 
 module "aws_lambda" {
@@ -38,6 +43,11 @@ module "aws_lambda" {
   role_redirect_request = {
     name = module.aws_iam.role_lambda_redirect_request.name
     arn  = module.aws_iam.role_lambda_redirect_request.arn
+  }
+
+  role_admin_portal = {
+    name = module.aws_iam.role_lambda_admin_portal.name
+    arn  = module.aws_iam.role_lambda_admin_portal.arn
   }
 
   allowed_domain                 = local.config["allowed_domain"]
