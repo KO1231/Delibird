@@ -18,7 +18,7 @@ resource "aws_iam_role" "lambda_admin_portal" {
 
 # Inline Policy
 resource "aws_iam_role_policy" "lambda_admin_portal" {
-  role = aws_iam_role.lambda_redirect_request.id
+  role = aws_iam_role.lambda_admin_portal.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -26,6 +26,7 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
         Effect = "Allow"
         Action = [
           "dynamodb:GetItem",
+          "dynamodb:Query",
         ]
         Resource = [
           var.ddb_link_table.arn,
