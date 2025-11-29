@@ -24,9 +24,45 @@ def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
     return html_content, html_content is not None
 
 
-def _generate_response_headers(content_type: str = None, use_css: bool = False) -> dict[str, str]:
+def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False) -> str:
+    script_origin = [
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None
+    ]
+    style_origin = [
+        "https://static.kazutech.jp/l/css/" if use_css else None,
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None,
+        "'unsafe-inline'" if _IS_DEV else None,  # FIXME
+    ]
+    font_origin = [
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None
+    ]
+    connect_origin = [
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None
+    ]
+
+    # Build
+    csp = ["default-src 'none'"]
+    if script_csp := list(filter(None, script_origin)):
+        csp.append(f"script-src {' '.join(script_csp)}")
+    if style_csp := list(filter(None, style_origin)):
+        csp.append(f"style-src {' '.join(style_csp)}")
+    if font_csp := list(filter(None, font_origin)):
+        csp.append(f"font-src {' '.join(font_csp)}")
+    if connect_csp := list(filter(None, connect_origin)):
+        csp.append(f"connect-src {' '.join(connect_csp)}")
+    csp += [
+        "frame-ancestors 'none'",
+        "base-uri 'none'",
+        "upgrade-insecure-requests"
+    ]
+    return "; ".join(csp)
+
+
+def _generate_response_headers(content_type: str = None, *, use_css: bool = False, use_bootstrap: bool = False) -> dict[str, str]:
     headers = {
         "Content-Type": content_type or "application/json;charset=utf-8",
+        "Content-Security-Policy": _build_csp_header(use_css=use_css, use_bootstrap=use_bootstrap),
         "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
         "Pragma": "no-cache",
         "Referrer-Policy": "same-origin",
@@ -35,15 +71,6 @@ def _generate_response_headers(content_type: str = None, use_css: bool = False) 
         "X-Robots-Tag": "noindex, nofollow",
         "Strict-Transport-Security": "max-age=31536000; preload",
     }
-
-    csp = [
-        "default-src 'none'",
-        "style-src https://static.kazutech.jp/l/css/" if use_css else None,
-        "frame-ancestors 'none'",
-        "base-uri 'none'",
-        "upgrade-insecure-requests"
-    ]
-    headers["Content-Security-Policy"] = "; ".join(filter(None, csp))
 
     if _IS_DEV:
         # 開発環境(local)用にCORS許可
@@ -70,10 +97,10 @@ def error_response(status: HTTPStatus):
     }
 
 
-def success_response(status: HTTPStatus, body: str | dict, content_type: str = None):
+def success_response(status: HTTPStatus, body: str | dict, content_type: str = None, *, use_css: bool = False, use_bootstrap: bool = False):
     return {
         "statusCode": status.value,
-        "headers": _generate_response_headers(content_type),
+        "headers": _generate_response_headers(content_type, use_css=use_css, use_bootstrap=use_bootstrap),
         "body": body if isinstance(body, str) else json.dumps(body),
     }
 
