@@ -24,15 +24,16 @@ def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
     return html_content, html_content is not None
 
 
-def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False) -> str:
+def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False, style_nonce: str = None, script_nonce: str = None) -> str:
     script_origin = [
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
+        f"'nonce-{script_nonce}'" if script_nonce else None
     ]
     style_origin = [
         "https://static.kazutech.jp/l/css/" if use_css else None,
         "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None,
-        "'unsafe-inline'" if _IS_DEV else None,  # FIXME
+        f"'nonce-{style_nonce}'" if style_nonce else None
     ]
     font_origin = [
         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None
@@ -59,10 +60,14 @@ def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False) -> str
     return "; ".join(csp)
 
 
-def _generate_response_headers(content_type: str = None, *, use_css: bool = False, use_bootstrap: bool = False) -> dict[str, str]:
+def _generate_response_headers(content_type: str = None, *,
+                               use_css: bool = False, use_bootstrap: bool = False,
+                               style_nonce: str = None, script_nonce: str = None) -> dict[str, str]:
     headers = {
         "Content-Type": content_type or "application/json;charset=utf-8",
-        "Content-Security-Policy": _build_csp_header(use_css=use_css, use_bootstrap=use_bootstrap),
+        "Content-Security-Policy": _build_csp_header(
+            use_css=use_css, use_bootstrap=use_bootstrap,
+            style_nonce=style_nonce, script_nonce=script_nonce),
         "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
         "Pragma": "no-cache",
         "Referrer-Policy": "same-origin",
@@ -97,10 +102,12 @@ def error_response(status: HTTPStatus):
     }
 
 
-def success_response(status: HTTPStatus, body: str | dict, content_type: str = None, *, use_css: bool = False, use_bootstrap: bool = False):
+def success_response(status: HTTPStatus, body: str | dict, content_type: str = None, *,
+                     use_css: bool = False, use_bootstrap: bool = False, style_nonce: str = None, script_nonce: str = None):
     return {
         "statusCode": status.value,
-        "headers": _generate_response_headers(content_type, use_css=use_css, use_bootstrap=use_bootstrap),
+        "headers": _generate_response_headers(
+            content_type, use_css=use_css, use_bootstrap=use_bootstrap, style_nonce=style_nonce, script_nonce=script_nonce),
         "body": body if isinstance(body, str) else json.dumps(body),
     }
 
