@@ -450,7 +450,8 @@
 
                     const expirationDate = document.getElementById('expirationDate').value;
                     if (expirationDate) {
-                        data.expiration_date = expirationDate;
+                        // ISO 8601(with timezone)
+                        data.expiration_date = (new Date(expirationDate)).toISOString();
                     }
 
                     const expiredOrigin = document.getElementById('expiredOrigin').value;
