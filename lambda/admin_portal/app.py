@@ -3,7 +3,7 @@ from http import HTTPStatus
 from aws_lambda_powertools.utilities.data_classes import event_source, APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from portal_page.portal_list_page import PortalListPage
+from portal_page.link_list import PortalListPage
 from util.logger_util import setup_logger
 from util.parse_util import parse_domain
 from util.response_util import error_response
