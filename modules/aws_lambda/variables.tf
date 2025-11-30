@@ -48,6 +48,10 @@ variable "role_admin_portal" {
   })
 }
 
+variable "link_prefix" {
+  type = string
+}
+
 variable "allowed_domain" {
   description = "Allowed domain for the Lambda function"
   type        = list(string)

@@ -66,6 +66,7 @@ resource "aws_lambda_function" "admin_portal" {
       ENV_VAR             = var.environment_var
       LINK_TABLE_NAME     = var.ddb_link_table.name
       STATIC_RESOURCE_DIR = "/opt/delibird/static"
+      LINK_PREFIX         = var.link_prefix
       ALLOWED_DOMAIN      = join(",", var.allowed_domain)
     }
   }
