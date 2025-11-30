@@ -434,26 +434,50 @@
                         return false;
                     }
 
-                    // フォームデータを作成
-                    const formData = new FormData(this);
+                    // JSONデータを作成
+                    const data = {
+                        link_slug: document.getElementById('linkSlug').value,
+                        link_origin: document.getElementById('linkOrigin').value,
+                        status: parseInt(document.getElementById('status').value),
+                        query_omit: queryOmitCheckbox.checked
+                    };
 
-                    // 空の値を持つオプショナルフィールドを除外
-                    const inputs = this.querySelectorAll('input[type="number"], input[type="datetime-local"], input[type="url"][id="expiredOrigin"]');
-                    inputs.forEach(input => {
-                        if (!input.value) {
-                            formData.delete(input.name);
-                        }
-                    });
-
-                    // query_omitがtrueの場合は、query_whitelistを送信しない
-                    if (queryOmitCheckbox.checked) {
-                        formData.delete('query_whitelist');
+                    // オプショナルフィールドを追加
+                    const maxUses = document.getElementById('maxUses').value;
+                    if (maxUses) {
+                        data.max_uses = parseInt(maxUses);
                     }
 
-                    // POSTリクエストを送信
+                    const expirationDate = document.getElementById('expirationDate').value;
+                    if (expirationDate) {
+                        data.expiration_date = expirationDate;
+                    }
+
+                    const expiredOrigin = document.getElementById('expiredOrigin').value;
+                    if (expiredOrigin) {
+                        data.expired_origin = expiredOrigin;
+                    }
+
+                    const disabledCheckbox = document.getElementById('disabled');
+                    if (disabledCheckbox.checked) {
+                        data.disabled = true;
+                    }
+
+                    // query_omitがfalseの場合のみ、query_whitelistを送信
+                    if (!queryOmitCheckbox.checked) {
+                        const queryWhitelist = document.getElementById('queryWhitelist').value;
+                        if (queryWhitelist) {
+                            data.query_whitelist = queryWhitelist.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                    }
+
+                    // POSTリクエストを送信（JSON形式）
                     fetch('/admin', {
                         method: 'POST',
-                        body: formData
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
                     })
                     .then(response => {
                         if (response.ok) {
