@@ -12,7 +12,7 @@ from util.nonce_util import create_nonce
 from util.response_util import error_response, success_response
 from util.static_resource_util import load_static_html
 
-logger = setup_logger("admin_portal.portal_list_page")
+logger = setup_logger("admin_portal.link_list_page")
 _LINK_PREFIX = os.environ["LINK_PREFIX"]
 
 
