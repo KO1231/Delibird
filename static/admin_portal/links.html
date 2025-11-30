@@ -60,6 +60,10 @@
             .max-uses-exceeded-row {
                 background-color: #ffe5e5;
             }
+
+            .hidden-field {
+                display: none;
+            }
         </style>
     </head>
     <body class="bg-light">
@@ -98,6 +102,13 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Create New Link Button -->
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createLinkModal">
+                    <i class="bi bi-plus-circle"></i> 新規リンク作成
+                </button>
             </div>
 
             <!-- Links Table -->
@@ -266,6 +277,115 @@
             </div>
             {% endif %}
 
+            <!-- Create Link Modal -->
+            <div class="modal fade" id="createLinkModal" tabindex="-1" aria-labelledby="createLinkModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createLinkModalLabel">
+                                <i class="bi bi-plus-circle"></i> 新規リンク作成
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="createLinkForm" method="POST" action="/admin">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <!-- Slug -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="linkSlug" class="form-label">Slug <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="linkSlug" name="link_slug" required
+                                               pattern="[a-zA-Z0-9_-]+" title="英数字、ハイフン、アンダースコアのみ使用可能">
+                                        <div class="form-text">英数字、ハイフン、アンダースコアのみ使用可能</div>
+                                    </div>
+
+                                    <!-- HTTP Status -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="status" class="form-label">HTTP Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="301">301 - Moved Permanently</option>
+                                            <option value="302" selected>302 - Found</option>
+                                            <option value="303">303 - See Other</option>
+                                            <option value="307">307 - Temporary Redirect</option>
+                                            <option value="308">308 - Permanent Redirect</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Origin URL -->
+                                <div class="mb-3">
+                                    <label for="linkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <input type="url" class="form-control" id="linkOrigin" name="link_origin" required
+                                           placeholder="https://example.com/destination">
+                                    <div class="form-text">リダイレクト先のURL</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Max Uses -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="maxUses" class="form-label">Max Uses</label>
+                                        <input type="number" class="form-control" id="maxUses" name="max_uses" min="1"
+                                               placeholder="無制限">
+                                        <div class="form-text">最大使用回数（空欄で無制限）</div>
+                                    </div>
+
+                                    <!-- Expiration Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="expirationDate" class="form-label">Expiration Date</label>
+                                        <input type="datetime-local" class="form-control" id="expirationDate" name="expiration_date">
+                                        <div class="form-text">有効期限（空欄で無期限）</div>
+                                    </div>
+                                </div>
+
+                                <!-- Query Settings -->
+                                <div class="mb-3">
+                                    <label class="form-label">Query String Settings</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="queryOmit" name="query_omit" value="true" checked>
+                                        <label class="form-check-label" for="queryOmit">
+                                            クエリパラメータを除外
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Query Whitelist -->
+                                <div class="mb-3 hidden-field" id="queryWhitelistContainer">
+                                    <label for="queryWhitelist" class="form-label">Query Whitelist</label>
+                                    <input type="text" class="form-control" id="queryWhitelist" name="query_whitelist"
+                                           placeholder="param1,param2,param3" disabled>
+                                    <div class="form-text">カンマ区切りで許可するクエリパラメータ名を指定</div>
+                                </div>
+
+                                <!-- Disabled -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="disabled" name="disabled" value="true">
+                                        <label class="form-check-label" for="disabled">
+                                            無効化（作成後に無効状態にする）
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Expired Origin -->
+                                <div class="mb-3">
+                                    <label for="expiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <input type="url" class="form-control" id="expiredOrigin" name="expired_origin"
+                                           placeholder="https://example.com/expired">
+                                    <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle"></i> キャンセル
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> 作成
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Footer -->
             <footer class="text-center text-muted my-4">
                 <small>&copy; 2025 Kazuhiro Oka</small>
@@ -274,5 +394,92 @@
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Custom JS -->
+        <script{% if script_nonce %} nonce="{{ script_nonce }}"{% endif %}>
+            // Query Omit チェックボックスの制御
+            document.addEventListener('DOMContentLoaded', function() {
+                const queryOmitCheckbox = document.getElementById('queryOmit');
+                const queryWhitelistContainer = document.getElementById('queryWhitelistContainer');
+                const queryWhitelistInput = document.getElementById('queryWhitelist');
+
+                // チェックボックスの状態に応じてホワイトリスト入力欄を表示/非表示・有効/無効
+                function updateQueryWhitelistState() {
+                    if (queryOmitCheckbox.checked) {
+                        queryWhitelistContainer.classList.add('hidden-field');
+                        queryWhitelistInput.disabled = true;
+                        queryWhitelistInput.value = '';
+                    } else {
+                        queryWhitelistContainer.classList.remove('hidden-field');
+                        queryWhitelistInput.disabled = false;
+                    }
+                }
+
+                // 初期状態を設定
+                updateQueryWhitelistState();
+
+                // チェックボックス変更時
+                queryOmitCheckbox.addEventListener('change', updateQueryWhitelistState);
+
+                // フォーム送信時のバリデーションと送信処理
+                const createLinkForm = document.getElementById('createLinkForm');
+                createLinkForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const slugInput = document.getElementById('linkSlug');
+                    const slugPattern = /^[a-zA-Z0-9_-]+$/;
+
+                    if (!slugPattern.test(slugInput.value)) {
+                        alert('Slugは英数字、ハイフン、アンダースコアのみ使用可能です。');
+                        return false;
+                    }
+
+                    // フォームデータを作成
+                    const formData = new FormData(this);
+
+                    // 空の値を持つオプショナルフィールドを除外
+                    const inputs = this.querySelectorAll('input[type="number"], input[type="datetime-local"], input[type="url"][id="expiredOrigin"]');
+                    inputs.forEach(input => {
+                        if (!input.value) {
+                            formData.delete(input.name);
+                        }
+                    });
+
+                    // query_omitがtrueの場合は、query_whitelistを送信しない
+                    if (queryOmitCheckbox.checked) {
+                        formData.delete('query_whitelist');
+                    }
+
+                    // POSTリクエストを送信
+                    fetch('/admin', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // 成功したらページをリロード
+                            window.location.reload();
+                        } else {
+                            // エラーの場合はアラート表示
+                            return response.text().then(text => {
+                                alert('エラーが発生しました: ' + (text || response.statusText));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        alert('エラーが発生しました: ' + error.message);
+                    });
+
+                    return false;
+                });
+
+                // モーダルが閉じられたときにフォームをリセット
+                const createLinkModal = document.getElementById('createLinkModal');
+                createLinkModal.addEventListener('hidden.bs.modal', function() {
+                    createLinkForm.reset();
+                    updateQueryWhitelistState();
+                });
+            });
+        </script>
     </body>
 </html>

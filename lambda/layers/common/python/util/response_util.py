@@ -35,6 +35,9 @@ def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False, style_
         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None,
         f"'nonce-{style_nonce}'" if style_nonce else None
     ]
+    img_origin = [
+        "data:" if use_bootstrap else None,
+    ]
     font_origin = [
         "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/" if use_bootstrap else None
     ]
@@ -48,6 +51,8 @@ def _build_csp_header(use_css: bool = False, use_bootstrap: bool = False, style_
         csp.append(f"script-src {' '.join(script_csp)}")
     if style_csp := list(filter(None, style_origin)):
         csp.append(f"style-src {' '.join(style_csp)}")
+    if img_csp := list(filter(None, img_origin)):
+        csp.append(f"img-src {' '.join(img_csp)}")
     if font_csp := list(filter(None, font_origin)):
         csp.append(f"font-src {' '.join(font_csp)}")
     if connect_csp := list(filter(None, connect_origin)):

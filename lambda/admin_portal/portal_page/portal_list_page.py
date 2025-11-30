@@ -3,9 +3,9 @@ from http import HTTPStatus
 from typing import Optional
 
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
+from portal_page.page import AdminPortalPage
 
 from ddb.models.delibird_link import DelibirdLinkTableModel, DelibirdLink
-from portal_page.page import AdminPortalPage
 from util.date_util import get_jst_datetime_now
 from util.logger_util import setup_logger
 from util.nonce_util import create_nonce
@@ -40,10 +40,11 @@ class PortalListPage(AdminPortalPage):
     @classmethod
     def perform(cls, domain: str, event: APIGatewayProxyEvent):
         style_nonce = create_nonce()
+        script_nonce = create_nonce()
 
         try:
             links = DelibirdLinkTableModel.scan_domain(domain)
-            html_content = cls._get_links_html(domain, links, style_nonce=style_nonce)
+            html_content = cls._get_links_html(domain, links, style_nonce=style_nonce, script_nonce=script_nonce)
             if html_content is None:
                 raise RuntimeError("Failed to generate HTML content.")
         except Exception:
@@ -52,4 +53,5 @@ class PortalListPage(AdminPortalPage):
 
         # HTMLレスポンスを返す
         return success_response(HTTPStatus.OK, html_content,
-                                content_type='text/html;charset=utf-8', use_css=True, use_bootstrap=True, style_nonce=style_nonce)
+                                content_type='text/html;charset=utf-8', use_css=True, use_bootstrap=True,
+                                style_nonce=style_nonce, script_nonce=script_nonce)
