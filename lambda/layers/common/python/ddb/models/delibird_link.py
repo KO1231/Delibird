@@ -14,7 +14,7 @@ from pynamodb.expressions.operand import Path
 from pynamodb.models import Model
 
 from ddb.datetime_attribute import DateTimeAttribute
-from util.date_util import get_jst_datetime_now
+from util.date_util import get_jst_datetime_now, as_jst
 from util.logger_util import setup_logger
 
 _REGION = os.environ["AWS_REGION"]
@@ -95,7 +95,7 @@ class DelibirdLink:
             status=HTTPStatus(model.status),
             disabled=model.disabled,
             uses=int(model.uses),
-            expiration_date=model.expiration_date,
+            expiration_date=as_jst(model.expiration_date) if model.expiration_date is not None else None,
             expired_origin=model.expired_origin,
             query_omit=model.query_omit,
             query_whitelist=model.query_whitelist,

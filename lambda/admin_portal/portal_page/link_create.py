@@ -8,7 +8,7 @@ from pynamodb.exceptions import PutError
 
 from ddb.models.delibird_link import DelibirdLinkTableModel, DelibirdLink
 from portal_page.page import AdminPortalPage
-from util.date_util import get_jst_datetime_now
+from util.date_util import get_jst_datetime_now, as_jst
 from util.logger_util import setup_logger
 from util.response_util import error_response, success_response
 
@@ -33,7 +33,7 @@ class PortalLinkCreatePage(AdminPortalPage):
                 status=HTTPStatus(int(body["status"])),
                 disabled=bool(body["disabled"]),
 
-                expiration_date=datetime.fromisoformat(str(body["expiration_date"])) if "expiration_date" in body else None,
+                expiration_date=as_jst(datetime.fromisoformat(str(body["expiration_date"]))) if "expiration_date" in body else None,
                 expired_origin=str(body["expired_origin"]) if "expired_origin" in body else None,
                 query_omit=bool(body["query_omit"]),
                 query_whitelist=set(body["query_whitelist"]) if "query_whitelist" in body else None,
