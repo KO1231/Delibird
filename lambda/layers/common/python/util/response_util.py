@@ -96,8 +96,8 @@ def _generate_response_headers(content_type: str = None, *,
     return headers
 
 
-def error_response(status: HTTPStatus):
-    _html, load_success = _load_error_html(status)
+def error_response(status: HTTPStatus, force_json: bool = False):
+    _html, load_success = _load_error_html(status) if not force_json else (None, False)
 
     headers = _generate_response_headers("text/html;charset=utf-8" if load_success else None, use_css=load_success)
     body = _html if load_success else json.dumps({"message": status.phrase})
