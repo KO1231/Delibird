@@ -27,6 +27,7 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
         Action = [
           "dynamodb:GetItem",
           "dynamodb:Query",
+          "dynamodb:PutItem",
         ]
         Resource = [
           var.ddb_link_table.arn,

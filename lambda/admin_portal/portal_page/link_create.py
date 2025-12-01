@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Optional
 
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from pynamodb.exceptions import PutError
@@ -16,7 +17,13 @@ logger = setup_logger("admin_portal.link_create_page")
 
 class PortalLinkCreatePage(AdminPortalPage):
     @classmethod
-    def _parse_request_data(cls, domain: str, body: dict[str, Any]) -> Optional[DelibirdLink]:
+    def _parse_request_data(cls, domain: str, _body: str) -> Optional[DelibirdLink]:
+        try:
+            body = json.loads(_body)
+        except json.decoder.JSONDecodeError as e:
+            logger.info(f"Invalid JSON body: {_body}", exc_info=e)
+            return None
+
         try:
             link = DelibirdLink(
                 _model=None,
@@ -36,7 +43,7 @@ class PortalLinkCreatePage(AdminPortalPage):
                 raise ValueError("status is not redirection: {link.status}")
             if link.query_omit and link.query_whitelist:
                 raise ValueError("both query_omit and query_whitelist are set.")
-            if link.expiration_date.tzinfo is None:
+            if link.expiration_date and link.expiration_date.tzinfo is None:
                 raise ValueError("expiration_date is not timezone-aware.")
         except Exception as e:
             logger.info(f"Failed to parse DelibirdLink from body, error: {e}")
@@ -46,7 +53,7 @@ class PortalLinkCreatePage(AdminPortalPage):
 
     @classmethod
     def perform(cls, domain: str, event: APIGatewayProxyEvent):
-        link_data = cls._parse_request_data(domain, event.json_body)
+        link_data = cls._parse_request_data(domain, event.body)
         if link_data is None:
             logger.info(f"Get Invalid link create request data for domain: {domain}")
             return error_response(HTTPStatus.BAD_REQUEST, force_json=True)
