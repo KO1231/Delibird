@@ -492,6 +492,8 @@
                         if (response.ok) {
                             // 成功したらページをリロード
                             window.location.reload();
+                        } else if(response.status === 409) { // CONFLICT
+                            alert('指定したリンクはすでに存在しています。最新のリンク一覧を確認してください。');
                         } else {
                             // エラーの場合はアラート表示
                             return response.text().then(text => {
