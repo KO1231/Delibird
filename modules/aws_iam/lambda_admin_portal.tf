@@ -27,12 +27,35 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
         Action = [
           "dynamodb:GetItem",
           "dynamodb:Query",
-          "dynamodb:PutItem",    ## FIXME
+          "dynamodb:PutItem", ## FIXME
+        ]
+        Resource = [
+          var.ddb_link_table.arn,
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "dynamodb:UpdateItem", ## FIXME
         ]
         Resource = [
           var.ddb_link_table.arn,
         ]
+        Condition = {
+          "ForAllValues:StringEquals" = {
+            "dynamodb:Attributes" = [
+              "domain",
+              "slug",
+              "origin",
+              "max_uses",
+              "disabled",
+              "expiration_date",
+              "expired_origin",
+              "query_omit",
+              "query_whitelist"
+            ]
+          }
+        }
       },
     ]
   })
