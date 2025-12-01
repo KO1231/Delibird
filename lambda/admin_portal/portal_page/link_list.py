@@ -28,7 +28,7 @@ class PortalListPage(AdminPortalPage):
 
         return load_static_html("admin_portal/links.html", {
             'domain': domain,
-            'link_prefix': _LINK_PREFIX,
+            'link_prefix': _LINK_PREFIX + "/" if _LINK_PREFIX else "",
             'links': links,
             'active_count': active_count,
             'inactive_count': inactive_count,

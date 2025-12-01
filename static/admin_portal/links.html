@@ -134,7 +134,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% set link_prefix = link_prefix + "/" if link_prefix else "" %}
                                 {% for link in links %}
                                 {% set is_active, inactive_reason = link.check_active() %}
                                 <tr class="{% if not is_active %}
@@ -287,14 +286,14 @@
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="createLinkForm" method="POST" action="/admin">
+                        <form id="createLinkForm">
                             <div class="modal-body">
                                 <div class="row">
                                     <!-- Slug -->
                                     <div class="col-md-6 mb-3">
                                         <label for="linkSlug" class="form-label">Slug <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="linkSlug" name="link_slug" required
-                                               pattern="[a-zA-Z0-9_-]+" title="英数字、ハイフン、アンダースコアのみ使用可能">
+                                               pattern="[a-zA-Z0-9_\-]+" title="英数字、ハイフン、アンダースコアのみ使用可能">
                                         <div class="form-text">英数字、ハイフン、アンダースコアのみ使用可能</div>
                                     </div>
 
@@ -377,7 +376,7 @@
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="bi bi-x-circle"></i> キャンセル
                                 </button>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="submitButton">
                                     <i class="bi bi-check-circle"></i> 作成
                                 </button>
                             </div>
@@ -421,17 +420,30 @@
                 // チェックボックス変更時
                 queryOmitCheckbox.addEventListener('change', updateQueryWhitelistState);
 
-                // フォーム送信時のバリデーションと送信処理
-                const createLinkForm = document.getElementById('createLinkForm');
-                createLinkForm.addEventListener('submit', function(e) {
+                // フォーム送信ボタンのクリックイベント
+                const submitButton = document.getElementById('submitButton');
+                submitButton.addEventListener('click', function(e) {
+                    // イベント伝播を防止
                     e.preventDefault();
+                    e.stopPropagation();
 
                     const slugInput = document.getElementById('linkSlug');
                     const slugPattern = /^[a-zA-Z0-9_-]+$/;
 
+                    if (!slugInput.value) {
+                        alert('Slugを入力してください。');
+                        return;
+                    }
+
                     if (!slugPattern.test(slugInput.value)) {
                         alert('Slugは英数字、ハイフン、アンダースコアのみ使用可能です。');
-                        return false;
+                        return;
+                    }
+
+                    const originInput = document.getElementById('linkOrigin');
+                    if (!originInput.value) {
+                        alert('Origin URLを入力してください。');
+                        return;
                     }
 
                     // JSONデータを作成
@@ -439,6 +451,7 @@
                         link_slug: document.getElementById('linkSlug').value,
                         link_origin: document.getElementById('linkOrigin').value,
                         status: parseInt(document.getElementById('status').value),
+                        disabled: document.getElementById('disabled').checked,
                         query_omit: queryOmitCheckbox.checked
                     };
 
@@ -459,11 +472,6 @@
                         data.expired_origin = expiredOrigin;
                     }
 
-                    const disabledCheckbox = document.getElementById('disabled');
-                    if (disabledCheckbox.checked) {
-                        data.disabled = true;
-                    }
-
                     // query_omitがfalseの場合のみ、query_whitelistを送信
                     if (!queryOmitCheckbox.checked) {
                         const queryWhitelist = document.getElementById('queryWhitelist').value;
@@ -473,7 +481,7 @@
                     }
 
                     // POSTリクエストを送信（JSON形式）
-                    fetch('/admin', {
+                    fetch('/{{link_prefix}}admin', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -494,12 +502,11 @@
                     .catch(error => {
                         alert('エラーが発生しました: ' + error.message);
                     });
-
-                    return false;
                 });
 
                 // モーダルが閉じられたときにフォームをリセット
                 const createLinkModal = document.getElementById('createLinkModal');
+                const createLinkForm = document.getElementById('createLinkForm');
                 createLinkModal.addEventListener('hidden.bs.modal', function() {
                     createLinkForm.reset();
                     updateQueryWhitelistState();
