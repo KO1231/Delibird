@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Delibird Links - {{ domain }}</title>
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        <style{% if style_nonce %} nonce="{{ style_nonce }}"{% endif %}>
+            .status-badge {
+                min-width: 60px;
+            }
+
+            .link-url {
+                word-break: break-all;
+            }
+
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+
+            .header-section {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 2rem 0;
+                margin-bottom: 2rem;
+            }
+
+            .stats-card {
+                border-left: 4px solid;
+                transition: transform 0.2s;
+            }
+
+            .stats-card:hover {
+                transform: translateY(-2px);
+            }
+
+            .active-link {
+                border-left-color: #28a745;
+            }
+
+            .inactive-link {
+                border-left-color: #dc3545;
+            }
+
+            .total-link {
+                border-left-color: #007bff;
+            }
+
+            .expired-row {
+                background-color: #fff3cd;
+            }
+
+            .disabled-row {
+                background-color: #f8d7da;
+            }
+
+            .max-uses-exceeded-row {
+                background-color: #ffe5e5;
+            }
+
+            .hidden-field {
+                display: none;
+            }
+        </style>
+    </head>
+    <body class="bg-light">
+        <!-- Header -->
+        <div class="header-section">
+            <div class="container">
+                <h1 class="mb-2"><i class="bi bi-link-45deg"></i> Delibird Links</h1>
+                <p class="mb-0">Domain: <strong>{{ domain }}</strong></p>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card total-link shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Total Links</h6>
+                            <h2 class="card-title mb-0">{{ links|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card active-link shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Active Links</h6>
+                            <h2 class="card-title mb-0">{{ active_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stats-card inactive-link shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Inactive Links</h6>
+                            <h2 class="card-title mb-0">{{ inactive_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Link Button -->
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createLinkModal">
+                    <i class="bi bi-plus-circle"></i> 新規リンク作成
+                </button>
+            </div>
+
+            <!-- Links Table -->
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-table"></i> Link Details</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if links %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Slug</th>
+                                    <th>Origin URL</th>
+                                    <th>Status</th>
+                                    <th>Active</th>
+                                    <th>Uses</th>
+                                    <th>Max Uses</th>
+                                    <th>Expiration (JST)</th>
+                                    <th>Query</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for link in links %}
+                                {% set is_active, inactive_reason = link.check_active() %}
+                                <tr class="{% if not is_active %}
+                                {% if link.disabled %}disabled-row
+                                {% elif link.expiration_date and link.expiration_date < now %}expired-row
+                                {% elif link.max_uses and link.uses >= link.max_uses %}max-uses-exceeded-row
+                                {% endif %}
+                            {% endif %}">
+                                    <!-- Slug -->
+                                    <td>
+                                        <strong>
+                                            <a href="https://{{domain}}/{{link_prefix}}{{link.link_slug}}" target="_blank"
+                                               class="text-decoration-none">
+                                                {{ link.link_slug }}
+                                            </a>
+                                        </strong>
+                                        {% if link.disabled %}
+                                        <br><span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Disabled</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Origin URL -->
+                                    <td class="link-url">
+                                        <a href="{{ link.link_origin }}" target="_blank" class="text-decoration-none">
+                                            {{ link.link_origin }}
+                                        </a>
+                                        {% if not is_active and link.expired_origin %}
+                                        <br><small class="text-muted">Expired Origin: {{ link.expired_origin }}</small>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- HTTP Status -->
+                                    <td>
+                                    <span class="badge status-badge {% if link.status.value < 300 %}bg-success{% elif link.status.value < 400 %}bg-info{% else %}bg-warning{% endif %}">
+                                        {{ link.status.value }}
+                                    </span>
+                                    </td>
+
+                                    <!-- Active Status -->
+                                    <td>
+                                        {% if is_active %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
+                                        {% if inactive_reason %}
+                                        <br><small class="text-muted">{{ inactive_reason.reason }}</small>
+                                        {% endif %}
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Uses -->
+                                    <td>
+                                        <span class="badge bg-primary">{{ link.uses }}</span>
+                                    </td>
+
+                                    <!-- Max Uses -->
+                                    <td>
+                                        {% if link.max_uses %}
+                                        <span class="badge bg-warning text-dark">{{ link.max_uses }}</span>
+                                        {% if link.uses >= link.max_uses %}
+                                        <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Exceeded</small>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">∞</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Expiration Date -->
+                                    <td>
+                                        {% if link.expiration_date %}
+                                        {{ link.expiration_date.strftime('%Y-%m-%d %H:%M') }}
+                                        {% if link.expiration_date < now %}
+                                        <br><span class="badge bg-danger"><i class="bi bi-clock"></i> Expired</span>
+                                        {% else %}
+                                        <br><span class="badge bg-info"><i class="bi bi-clock"></i> Active</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Query Settings -->
+                                    <td>
+                                        {% if link.query_omit %}
+                                        <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Omit</span>
+                                        {% else %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Include</span>
+                                        {% endif %}
+                                        {% if link.query_whitelist %}
+                                        <br><small class="text-muted">Whitelist: {{ link.query_whitelist|join(', ') }}</small>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Edit Button -->
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary edit-link-btn"
+                                                data-slug="{{ link.link_slug }}"
+                                                data-origin="{{ link.link_origin }}"
+                                                data-status="{{ link.status.value }}"
+                                                data-disabled="{{ 'true' if link.disabled else 'false' }}"
+                                                data-max-uses="{{ link.max_uses or '' }}"
+                                                data-expiration="{{ link.expiration_date.strftime('%Y-%m-%dT%H:%M') if link.expiration_date else '' }}"
+                                                data-expired-origin="{{ link.expired_origin or '' }}"
+                                                data-query-omit="{{ 'true' if link.query_omit else 'false' }}"
+                                                data-query-whitelist="{{ link.query_whitelist|join(',') if link.query_whitelist else '' }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editLinkModal">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No links found for this domain.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Legend -->
+            {% if links %}
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Legend</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <span class="badge bg-success">Active</span> Link is currently active and usable
+                        </div>
+                        <div class="col-md-4">
+                            <span class="badge bg-danger">Inactive</span> Link is disabled, expired, or max uses exceeded
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 expired-row d-inline-block">Expired</div>
+                            Expiration date has passed
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <div class="p-2 disabled-row d-inline-block">Disabled</div>
+                            Link is manually disabled
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 max-uses-exceeded-row d-inline-block">Max Uses</div>
+                            Maximum usage count reached
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Create Link Modal -->
+            <div class="modal fade" id="createLinkModal" tabindex="-1" aria-labelledby="createLinkModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createLinkModalLabel">
+                                <i class="bi bi-plus-circle"></i> 新規リンク作成
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="createLinkForm">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <!-- Slug -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="linkSlug" class="form-label">Slug <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="linkSlug" name="link_slug" required
+                                               pattern="[a-zA-Z0-9_\-]+" title="英数字、ハイフン、アンダースコアのみ使用可能">
+                                        <div class="form-text">英数字、ハイフン、アンダースコアのみ使用可能</div>
+                                    </div>
+
+                                    <!-- HTTP Status -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="status" class="form-label">HTTP Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="301">301 - Moved Permanently</option>
+                                            <option value="302" selected>302 - Found</option>
+                                            <option value="303">303 - See Other</option>
+                                            <option value="307">307 - Temporary Redirect</option>
+                                            <option value="308">308 - Permanent Redirect</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Origin URL -->
+                                <div class="mb-3">
+                                    <label for="linkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <input type="url" class="form-control" id="linkOrigin" name="link_origin" required
+                                           placeholder="https://example.com/destination">
+                                    <div class="form-text">リダイレクト先のURL</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Max Uses -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="maxUses" class="form-label">Max Uses</label>
+                                        <input type="number" class="form-control" id="maxUses" name="max_uses" min="1"
+                                               placeholder="無制限">
+                                        <div class="form-text">最大使用回数（空欄で無制限）</div>
+                                    </div>
+
+                                    <!-- Expiration Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="expirationDate" class="form-label">Expiration Date</label>
+                                        <input type="datetime-local" class="form-control" id="expirationDate" name="expiration_date">
+                                        <div class="form-text">有効期限（空欄で無期限）</div>
+                                    </div>
+                                </div>
+
+                                <!-- Query Settings -->
+                                <div class="mb-3">
+                                    <label class="form-label">Query String Settings</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="queryOmit" name="query_omit" value="true" checked>
+                                        <label class="form-check-label" for="queryOmit">
+                                            クエリパラメータを除外
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Query Whitelist -->
+                                <div class="mb-3 hidden-field" id="queryWhitelistContainer">
+                                    <label for="queryWhitelist" class="form-label">Query Whitelist</label>
+                                    <input type="text" class="form-control" id="queryWhitelist" name="query_whitelist"
+                                           placeholder="param1,param2,param3" disabled>
+                                    <div class="form-text">カンマ区切りで許可するクエリパラメータ名を指定</div>
+                                </div>
+
+                                <!-- Disabled -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="disabled" name="disabled" value="true">
+                                        <label class="form-check-label" for="disabled">
+                                            無効化（作成後に無効状態にする）
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Expired Origin -->
+                                <div class="mb-3">
+                                    <label for="expiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <input type="url" class="form-control" id="expiredOrigin" name="expired_origin"
+                                           placeholder="https://example.com/expired">
+                                    <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle"></i> キャンセル
+                                </button>
+                                <button type="button" class="btn btn-primary" id="submitButton">
+                                    <i class="bi bi-check-circle"></i> 作成
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Link Modal -->
+            <div class="modal fade" id="editLinkModal" tabindex="-1" aria-labelledby="editLinkModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editLinkModalLabel">
+                                <i class="bi bi-pencil"></i> リンク編集
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="editLinkForm" autocomplete="off">
+                            <div class="modal-body">
+                                <!-- Slug (読み取り専用) -->
+                                <div class="mb-3">
+                                    <label for="editLinkSlug" class="form-label">Slug</label>
+                                    <input type="text" class="form-control" id="editLinkSlug" readonly>
+                                    <div class="form-text">Slugは編集できません</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- HTTP Status -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStatus" class="form-label">HTTP Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="editStatus" name="status" required>
+                                            <option value="301">301 - Moved Permanently</option>
+                                            <option value="302">302 - Found</option>
+                                            <option value="303">303 - See Other</option>
+                                            <option value="307">307 - Temporary Redirect</option>
+                                            <option value="308">308 - Permanent Redirect</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Origin URL -->
+                                <div class="mb-3">
+                                    <label for="editLinkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <input type="url" class="form-control" id="editLinkOrigin" name="link_origin" required
+                                           placeholder="https://example.com/destination" autocomplete="off">
+                                    <div class="form-text">リダイレクト先のURL</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Max Uses -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editMaxUses" class="form-label">Max Uses</label>
+                                        <input type="number" class="form-control" id="editMaxUses" name="max_uses" min="1"
+                                               placeholder="無制限" autocomplete="off">
+                                        <div class="form-text">最大使用回数（空欄で無制限）</div>
+                                    </div>
+
+                                    <!-- Expiration Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editExpirationDate" class="form-label">Expiration Date</label>
+                                        <input type="datetime-local" class="form-control" id="editExpirationDate" name="expiration_date" autocomplete="off">
+                                        <div class="form-text">有効期限（空欄で無期限）</div>
+                                    </div>
+                                </div>
+
+                                <!-- Disabled -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editDisabled" name="disabled" value="true">
+                                        <label class="form-check-label" for="editDisabled">
+                                            無効化（リンクを無効状態にする）
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Query Settings -->
+                                <div class="mb-3">
+                                    <label class="form-label">Query String Settings</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editQueryOmit" name="query_omit" value="true">
+                                        <label class="form-check-label" for="editQueryOmit">
+                                            クエリパラメータを除外
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Query Whitelist -->
+                                <div class="mb-3 hidden-field" id="editQueryWhitelistContainer">
+                                    <label for="editQueryWhitelist" class="form-label">Query Whitelist</label>
+                                    <input type="text" class="form-control" id="editQueryWhitelist" name="query_whitelist"
+                                           placeholder="param1,param2,param3" disabled>
+                                    <div class="form-text">カンマ区切りで許可するクエリパラメータ名を指定</div>
+                                </div>
+
+                                <!-- Expired Origin -->
+                                <div class="mb-3">
+                                    <label for="editExpiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <input type="url" class="form-control" id="editExpiredOrigin" name="expired_origin"
+                                           placeholder="https://example.com/expired" autocomplete="off">
+                                    <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle"></i> キャンセル
+                                </button>
+                                <button type="button" class="btn btn-primary" id="editSubmitButton">
+                                    <i class="bi bi-check-circle"></i> 更新
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center text-muted my-4">
+                <small>&copy; 2025 Kazuhiro Oka</small>
+            </footer>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Custom JS -->
+        <script{% if script_nonce %} nonce="{{ script_nonce }}"{% endif %}>
+            // Query Omit チェックボックスの制御
+            document.addEventListener('DOMContentLoaded', function() {
+                const queryOmitCheckbox = document.getElementById('queryOmit');
+                const queryWhitelistContainer = document.getElementById('queryWhitelistContainer');
+                const queryWhitelistInput = document.getElementById('queryWhitelist');
+
+                // チェックボックスの状態に応じてホワイトリスト入力欄を表示/非表示・有効/無効
+                function updateQueryWhitelistState() {
+                    if (queryOmitCheckbox.checked) {
+                        queryWhitelistContainer.classList.add('hidden-field');
+                        queryWhitelistInput.disabled = true;
+                        queryWhitelistInput.value = '';
+                    } else {
+                        queryWhitelistContainer.classList.remove('hidden-field');
+                        queryWhitelistInput.disabled = false;
+                    }
+                }
+
+                // 初期状態を設定
+                updateQueryWhitelistState();
+
+                // チェックボックス変更時
+                queryOmitCheckbox.addEventListener('change', updateQueryWhitelistState);
+
+                // フォーム送信ボタンのクリックイベント
+                const submitButton = document.getElementById('submitButton');
+                submitButton.addEventListener('click', function(e) {
+                    // イベント伝播を防止
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const slugInput = document.getElementById('linkSlug');
+                    const slugPattern = /^[a-zA-Z0-9_-]+$/;
+
+                    if (!slugInput.value) {
+                        alert('Slugを入力してください。');
+                        return;
+                    }
+
+                    if (!slugPattern.test(slugInput.value)) {
+                        alert('Slugは英数字、ハイフン、アンダースコアのみ使用可能です。');
+                        return;
+                    }
+
+                    const originInput = document.getElementById('linkOrigin');
+                    if (!originInput.value) {
+                        alert('Origin URLを入力してください。');
+                        return;
+                    }
+
+                    // JSONデータを作成
+                    const data = {
+                        link_slug: document.getElementById('linkSlug').value,
+                        link_origin: document.getElementById('linkOrigin').value,
+                        status: parseInt(document.getElementById('status').value),
+                        disabled: document.getElementById('disabled').checked,
+                        query_omit: queryOmitCheckbox.checked
+                    };
+
+                    // オプショナルフィールドを追加
+                    const maxUses = document.getElementById('maxUses').value;
+                    if (maxUses) {
+                        data.max_uses = parseInt(maxUses);
+                    }
+
+                    const expirationDate = document.getElementById('expirationDate').value;
+                    if (expirationDate) {
+                        // ISO 8601(with timezone)
+                        data.expiration_date = (new Date(expirationDate)).toISOString();
+                    }
+
+                    const expiredOrigin = document.getElementById('expiredOrigin').value;
+                    if (expiredOrigin) {
+                        data.expired_origin = expiredOrigin;
+                    }
+
+                    // query_omitがfalseの場合のみ、query_whitelistを送信
+                    if (!queryOmitCheckbox.checked) {
+                        const queryWhitelist = document.getElementById('queryWhitelist').value;
+                        if (queryWhitelist) {
+                            data.query_whitelist = queryWhitelist.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                    }
+
+                    // POSTリクエストを送信（JSON形式）
+                    fetch('/{{link_prefix}}admin', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // 成功したらページをリロード
+                            window.location.reload();
+                        } else if(response.status === 409) { // CONFLICT
+                            alert('指定したリンクはすでに存在しています。最新のリンク一覧を確認してください。');
+                        } else {
+                            // エラーの場合はアラート表示
+                            return response.text().then(text => {
+                                alert('エラーが発生しました: ' + (text || response.statusText));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        alert('エラーが発生しました: ' + error.message);
+                    });
+                });
+
+                // モーダルが閉じられたときにフォームをリセット
+                const createLinkModal = document.getElementById('createLinkModal');
+                const createLinkForm = document.getElementById('createLinkForm');
+                createLinkModal.addEventListener('hidden.bs.modal', function() {
+                    createLinkForm.reset();
+                    updateQueryWhitelistState();
+                });
+
+                // === 編集機能 ===
+                const editQueryOmitCheckbox = document.getElementById('editQueryOmit');
+                const editQueryWhitelistContainer = document.getElementById('editQueryWhitelistContainer');
+                const editQueryWhitelistInput = document.getElementById('editQueryWhitelist');
+
+                // 編集モーダル用のホワイトリスト状態制御
+                function updateEditQueryWhitelistState() {
+                    if (editQueryOmitCheckbox.checked) {
+                        editQueryWhitelistContainer.classList.add('hidden-field');
+                        editQueryWhitelistInput.disabled = true;
+                        editQueryWhitelistInput.value = '';
+                    } else {
+                        editQueryWhitelistContainer.classList.remove('hidden-field');
+                        editQueryWhitelistInput.disabled = false;
+                    }
+                }
+
+                // 編集チェックボックス変更時
+                editQueryOmitCheckbox.addEventListener('change', updateEditQueryWhitelistState);
+
+                // 編集ボタンのクリックイベント
+                document.querySelectorAll('.edit-link-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        // data属性から値を取得
+                        const slug = this.getAttribute('data-slug');
+                        const origin = this.getAttribute('data-origin');
+                        const status = this.getAttribute('data-status');
+                        const disabled = this.getAttribute('data-disabled') === 'true';
+                        const maxUses = this.getAttribute('data-max-uses');
+                        const expiration = this.getAttribute('data-expiration');
+                        const expiredOrigin = this.getAttribute('data-expired-origin');
+                        const queryOmit = this.getAttribute('data-query-omit') === 'true';
+                        const queryWhitelist = this.getAttribute('data-query-whitelist');
+
+                        // フォームに値を設定
+                        document.getElementById('editLinkSlug').value = slug;
+                        document.getElementById('editLinkOrigin').value = origin;
+                        document.getElementById('editStatus').value = status;
+                        document.getElementById('editDisabled').checked = disabled;
+                        document.getElementById('editMaxUses').value = maxUses;
+                        document.getElementById('editExpirationDate').value = expiration;
+                        document.getElementById('editExpiredOrigin').value = expiredOrigin;
+                        document.getElementById('editQueryOmit').checked = queryOmit;
+                        document.getElementById('editQueryWhitelist').value = queryWhitelist;
+
+                        // Query Whitelist の状態を更新
+                        updateEditQueryWhitelistState();
+                    });
+                });
+
+                // 編集フォーム送信ボタンのクリックイベント
+                const editSubmitButton = document.getElementById('editSubmitButton');
+                editSubmitButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const slug = document.getElementById('editLinkSlug').value;
+                    const originInput = document.getElementById('editLinkOrigin');
+
+                    if (!originInput.value) {
+                        alert('Origin URLを入力してください。');
+                        return;
+                    }
+
+                    // JSONデータを作成
+                    const data = {
+                        domain: '{{ domain }}',
+                        link_slug: slug,
+                        link_origin: originInput.value,
+                        status: parseInt(document.getElementById('editStatus').value),
+                        disabled: document.getElementById('editDisabled').checked,
+                        query_omit: editQueryOmitCheckbox.checked
+                    };
+
+                    // オプショナルフィールドを追加
+                    const maxUses = document.getElementById('editMaxUses').value;
+                    if (maxUses) {
+                        data.max_uses = parseInt(maxUses);
+                    }
+
+                    const expirationDate = document.getElementById('editExpirationDate').value;
+                    if (expirationDate) {
+                        data.expiration_date = (new Date(expirationDate)).toISOString();
+                    }
+
+                    const expiredOrigin = document.getElementById('editExpiredOrigin').value;
+                    if (expiredOrigin) {
+                        data.expired_origin = expiredOrigin;
+                    }
+
+                    // query_omitがfalseの場合のみ、query_whitelistを送信
+                    if (!editQueryOmitCheckbox.checked) {
+                        const queryWhitelist = editQueryWhitelistInput.value;
+                        if (queryWhitelist) {
+                            data.query_whitelist = queryWhitelist.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                    }
+
+                    // PUTリクエストを送信（JSON形式）
+                    fetch('/{{link_prefix}}admin/', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // 成功したらページをリロード
+                            window.location.reload();
+                        } else {
+                            // エラーの場合はアラート表示
+                            return response.text().then(text => {
+                                alert('エラーが発生しました: ' + (text || response.statusText));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        alert('エラーが発生しました: ' + error.message);
+                    });
+                });
+
+                // 編集モーダルが閉じられたときにフォームをリセット
+                const editLinkModal = document.getElementById('editLinkModal');
+                const editLinkForm = document.getElementById('editLinkForm');
+                editLinkModal.addEventListener('hidden.bs.modal', function() {
+                    editLinkForm.reset();
+                    updateEditQueryWhitelistState();
+                });
+            });
+        </script>
+    </body>
+</html>

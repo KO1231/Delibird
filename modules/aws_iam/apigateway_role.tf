@@ -35,3 +35,21 @@ resource "aws_iam_role_policy" "invoke_lambda_redirect_request" {
     ]
   })
 }
+
+resource "aws_iam_role_policy" "invoke_lambda_admin_portal" {
+  role = aws_iam_role.apigateway.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction",
+        ]
+        Resource = [
+          var.lambda_admin_portal.arn
+        ]
+      }
+    ]
+  })
+}

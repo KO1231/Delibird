@@ -18,6 +18,11 @@ module "aws_iam" {
     name = module.aws_lambda.lambda_redirect_request.function_name
     arn  = module.aws_lambda.lambda_redirect_request.arn
   }
+
+  lambda_admin_portal = {
+    name = module.aws_lambda.lambda_admin_portal.function_name
+    arn  = module.aws_lambda.lambda_admin_portal.arn
+  }
 }
 
 module "aws_lambda" {
@@ -40,6 +45,12 @@ module "aws_lambda" {
     arn  = module.aws_iam.role_lambda_redirect_request.arn
   }
 
+  role_admin_portal = {
+    name = module.aws_iam.role_lambda_admin_portal.name
+    arn  = module.aws_iam.role_lambda_admin_portal.arn
+  }
+
+  link_prefix                    = "" # TODO: Change value as needed (e.g. https://example.com/dev/.... -> "dev")
   allowed_domain                 = local.config["allowed_domain"]
   reserved_concurrent_executions = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
 }

@@ -41,6 +41,17 @@ variable "role_redirect_request" {
   })
 }
 
+variable "role_admin_portal" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}
+
+variable "link_prefix" {
+  type = string
+}
+
 variable "allowed_domain" {
   description = "Allowed domain for the Lambda function"
   type        = list(string)
