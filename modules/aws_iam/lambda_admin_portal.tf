@@ -47,6 +47,7 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
               "domain",
               "slug",
               "origin",
+              "status",
               "max_uses",
               "disabled",
               "expiration_date",
