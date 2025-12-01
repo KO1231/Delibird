@@ -90,5 +90,8 @@ class PortalLinkCreatePage(AdminPortalPage):
                 return error_response(HTTPStatus.CONFLICT, force_json=True)
             logger.exception(f"Failed to create DelibirdLinkTableModel for domain: {domain}, slug: {link_data.link_slug}")
             return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+        except Exception:
+            logger.exception(f"Failed to create DelibirdLinkTableModel for domain: {domain}, slug: {link_data.link_slug}")
+            return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
 
         return success_response(HTTPStatus.CREATED, {"status": "created"})
