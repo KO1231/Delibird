@@ -10,7 +10,7 @@ from util.date_util import get_jst_datetime_now
 from util.logger_util import setup_logger
 from util.nonce_util import create_nonce
 from util.response_util import error_response, success_response
-from util.static_resource_util import load_static_html
+from util.static_resource_util import load_function_html
 
 logger = setup_logger("admin_portal.link_list_page")
 _LINK_PREFIX = os.environ["LINK_PREFIX"]
@@ -26,7 +26,7 @@ class PortalListPage(AdminPortalPage):
         # 現在時刻を取得
         now = get_jst_datetime_now()
 
-        return load_static_html("admin_portal/links.html", {
+        return load_function_html("static/links.html", {
             'domain': domain,
             'link_prefix': _LINK_PREFIX + "/" if _LINK_PREFIX else "",
             'links': links,
