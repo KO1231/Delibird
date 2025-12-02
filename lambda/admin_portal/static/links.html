@@ -8,63 +8,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <!-- Bootstrap Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-        <style{% if style_nonce %} nonce="{{ style_nonce }}"{% endif %}>
-            .status-badge {
-                min-width: 60px;
-            }
-
-            .link-url {
-                word-break: break-all;
-            }
-
-            .table-responsive {
-                font-size: 0.9rem;
-            }
-
-            .header-section {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 2rem 0;
-                margin-bottom: 2rem;
-            }
-
-            .stats-card {
-                border-left: 4px solid;
-                transition: transform 0.2s;
-            }
-
-            .stats-card:hover {
-                transform: translateY(-2px);
-            }
-
-            .active-link {
-                border-left-color: #28a745;
-            }
-
-            .inactive-link {
-                border-left-color: #dc3545;
-            }
-
-            .total-link {
-                border-left-color: #007bff;
-            }
-
-            .expired-row {
-                background-color: #fff3cd;
-            }
-
-            .disabled-row {
-                background-color: #f8d7da;
-            }
-
-            .max-uses-exceeded-row {
-                background-color: #ffe5e5;
-            }
-
-            .hidden-field {
-                display: none;
-            }
-        </style>
+        <link rel="stylesheet" href="https://static.kazutech.jp/l/css/admin-portal.css">
     </head>
     <body class="bg-light">
         <!-- Header -->
@@ -106,8 +50,8 @@
 
             <!-- Create New Link Button -->
             <div class="mb-3">
-                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createLinkModal">
-                    <i class="bi bi-plus-circle"></i> 新規リンク作成
+                <button type="button" class="btn btn-primary btn-md" data-bs-toggle="modal" data-bs-target="#createLinkModal">
+                    <i class="bi bi-plus-circle"></i> Create
                 </button>
             </div>
 
@@ -123,11 +67,11 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Slug</th>
-                                    <th>Origin URL</th>
+                                    <th>Origin</th>
                                     <th>Status</th>
                                     <th>Active</th>
                                     <th>Uses</th>
-                                    <th>Max Uses</th>
+                                    <th>Limit</th>
                                     <th>Expiration (JST)</th>
                                     <th>Query</th>
                                     <th>Edit</th>
@@ -136,50 +80,63 @@
                             <tbody>
                                 {% for link in links %}
                                 {% set is_active, inactive_reason = link.check_active() %}
-                                <tr class="{% if not is_active %}
-                                {% if link.disabled %}disabled-row
-                                {% elif link.expiration_date and link.expiration_date < now %}expired-row
-                                {% elif link.max_uses and link.uses >= link.max_uses %}max-uses-exceeded-row
-                                {% endif %}
-                            {% endif %}">
+                                <tr class="{%- if not is_active %}
+                                {%- if link.disabled %}disabled-row
+                                {%- elif link.expiration_date and link.expiration_date < now %}expired-row
+                                {%- elif link.max_uses and link.uses >= link.max_uses %}max-uses-exceeded-row
+                                {%- endif %}
+                                {%- endif %}">
                                     <!-- Slug -->
-                                    <td>
+                                    <td class="link-slug">
                                         <strong>
                                             <a href="https://{{domain}}/{{link_prefix}}{{link.link_slug}}" target="_blank"
                                                class="text-decoration-none">
                                                 {{ link.link_slug }}
                                             </a>
                                         </strong>
-                                        {% if link.disabled %}
-                                        <br><span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Disabled</span>
-                                        {% endif %}
                                     </td>
 
-                                    <!-- Origin URL -->
-                                    <td class="link-url">
+                                    <!-- Origin -->
+                                    <td class="link-origin">
                                         <a href="{{ link.link_origin }}" target="_blank" class="text-decoration-none">
                                             {{ link.link_origin }}
                                         </a>
                                         {% if not is_active and link.expired_origin %}
-                                        <br><small class="text-muted">Expired Origin: {{ link.expired_origin }}</small>
+                                        <br><small class="text-muted">Expired Origin:<br>{{ link.expired_origin }}</small>
                                         {% endif %}
                                     </td>
 
                                     <!-- HTTP Status -->
-                                    <td>
+                                    <td class="link-status">
                                     <span class="badge status-badge {% if link.status.value < 300 %}bg-success{% elif link.status.value < 400 %}bg-info{% else %}bg-warning{% endif %}">
                                         {{ link.status.value }}
                                     </span>
                                     </td>
 
                                     <!-- Active Status -->
-                                    <td>
+                                    <td class="link-active">
                                         {% if is_active %}
                                         <span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>
                                         {% else %}
+                                        {% if not inactive_reason %}
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
-                                        {% if inactive_reason %}
+                                        {% else %}
+                                        {% if inactive_reason.status.name == "EXPIRED" %}
+                                        {% if link.expired_origin %}
+                                        <span class="badge bg-expired"><i class="bi bi-clock-history"></i>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i>
+                                        {% endif %}
+                                             Expired
+                                        </span>
+                                        {% elif inactive_reason.status.name == "MAX_USES_EXCEEDED" %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Exceeded</span>
+                                        {% elif inactive_reason.status.name == "DISABLED" %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Disabled</span>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Unknown</span>
                                         <br><small class="text-muted">{{ inactive_reason.reason }}</small>
+                                        {% endif %}
                                         {% endif %}
                                         {% endif %}
                                     </td>
@@ -189,46 +146,37 @@
                                         <span class="badge bg-primary">{{ link.uses }}</span>
                                     </td>
 
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <td>
-                                        {% if link.max_uses %}
-                                        <span class="badge bg-warning text-dark">{{ link.max_uses }}</span>
-                                        {% if link.uses >= link.max_uses %}
-                                        <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Exceeded</small>
-                                        {% endif %}
-                                        {% else %}
-                                        <span class="text-muted">∞</span>
-                                        {% endif %}
+                                        <span class="badge {% if link.max_uses and link.uses >= link.max_uses %}bg-danger{% else %}bg-warning text-black{% endif %}">
+                                        {% if link.max_uses %}{{ link.max_uses }}{% else %}∞{% endif %}
+                                        </span>
                                     </td>
 
                                     <!-- Expiration Date -->
-                                    <td>
+                                    <td class="link-expiration-date">
                                         {% if link.expiration_date %}
+                                        {% if link.expiration_date < now %}<span class="text-danger">{% endif %}
                                         {{ link.expiration_date.strftime('%Y-%m-%d %H:%M') }}
-                                        {% if link.expiration_date < now %}
-                                        <br><span class="badge bg-danger"><i class="bi bi-clock"></i> Expired</span>
-                                        {% else %}
-                                        <br><span class="badge bg-info"><i class="bi bi-clock"></i> Active</span>
-                                        {% endif %}
+                                        {% if link.expiration_date < now %}</span>{% endif %}
                                         {% else %}
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
 
                                     <!-- Query Settings -->
-                                    <td>
+                                    <td class="link-query">
                                         {% if link.query_omit %}
                                         <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Omit</span>
                                         {% else %}
-                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Include</span>
-                                        {% endif %}
-                                        {% if link.query_whitelist %}
-                                        <br><small class="text-muted">Whitelist: {{ link.query_whitelist|join(', ') }}</small>
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i>
+                                        {% if link.query_whitelist %} Whitelist{% else %} Include{% endif %}
+                                        </span>
                                         {% endif %}
                                     </td>
 
                                     <!-- Edit Button -->
-                                    <td>
+                                    <td class="link-edit">
                                         <button type="button" class="btn btn-sm btn-outline-primary edit-link-btn"
                                                 data-slug="{{ link.link_slug }}"
                                                 data-origin="{{ link.link_origin }}"
@@ -257,37 +205,6 @@
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Legend -->
-            {% if links %}
-            <div class="card mt-4 shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Legend</h6>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <span class="badge bg-success">Active</span> Link is currently active and usable
-                        </div>
-                        <div class="col-md-4">
-                            <span class="badge bg-danger">Inactive</span> Link is disabled, expired, or max uses exceeded
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-2 expired-row d-inline-block">Expired</div>
-                            Expiration date has passed
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-4">
-                            <div class="p-2 disabled-row d-inline-block">Disabled</div>
-                            Link is manually disabled
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-2 max-uses-exceeded-row d-inline-block">Max Uses</div>
-                            Maximum usage count reached
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
 
             <!-- Create Link Modal -->
             <div class="modal fade" id="createLinkModal" tabindex="-1" aria-labelledby="createLinkModalLabel" aria-hidden="true">
@@ -323,18 +240,18 @@
                                     </div>
                                 </div>
 
-                                <!-- Origin URL -->
+                                <!-- Origin -->
                                 <div class="mb-3">
-                                    <label for="linkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <label for="linkOrigin" class="form-label">Origin <span class="text-danger">*</span></label>
                                     <input type="url" class="form-control" id="linkOrigin" name="link_origin" required
                                            placeholder="https://example.com/destination">
                                     <div class="form-text">リダイレクト先のURL</div>
                                 </div>
 
                                 <div class="row">
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="maxUses" class="form-label">Max Uses</label>
+                                        <label for="maxUses" class="form-label">Limit</label>
                                         <input type="number" class="form-control" id="maxUses" name="max_uses" min="1"
                                                placeholder="無制限">
                                         <div class="form-text">最大使用回数（空欄で無制限）</div>
@@ -379,7 +296,7 @@
 
                                 <!-- Expired Origin -->
                                 <div class="mb-3">
-                                    <label for="expiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <label for="expiredOrigin" class="form-label">Expired Origin</label>
                                     <input type="url" class="form-control" id="expiredOrigin" name="expired_origin"
                                            placeholder="https://example.com/expired">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
@@ -431,18 +348,18 @@
                                     </div>
                                 </div>
 
-                                <!-- Origin URL -->
+                                <!-- Origin -->
                                 <div class="mb-3">
-                                    <label for="editLinkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <label for="editLinkOrigin" class="form-label">Origin <span class="text-danger">*</span></label>
                                     <input type="url" class="form-control" id="editLinkOrigin" name="link_origin" required
                                            placeholder="https://example.com/destination" autocomplete="off">
                                     <div class="form-text">リダイレクト先のURL</div>
                                 </div>
 
                                 <div class="row">
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="editMaxUses" class="form-label">Max Uses</label>
+                                        <label for="editMaxUses" class="form-label">Limit</label>
                                         <input type="number" class="form-control" id="editMaxUses" name="max_uses" min="1"
                                                placeholder="無制限" autocomplete="off">
                                         <div class="form-text">最大使用回数（空欄で無制限）</div>
@@ -487,7 +404,7 @@
 
                                 <!-- Expired Origin -->
                                 <div class="mb-3">
-                                    <label for="editExpiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <label for="editExpiredOrigin" class="form-label">Expired Origin</label>
                                     <input type="url" class="form-control" id="editExpiredOrigin" name="expired_origin"
                                            placeholder="https://example.com/expired" autocomplete="off">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
@@ -563,7 +480,7 @@
 
                     const originInput = document.getElementById('linkOrigin');
                     if (!originInput.value) {
-                        alert('Origin URLを入力してください。');
+                        alert('Originを入力してください。');
                         return;
                     }
 
@@ -695,7 +612,7 @@
                     const originInput = document.getElementById('editLinkOrigin');
 
                     if (!originInput.value) {
-                        alert('Origin URLを入力してください。');
+                        alert('Originを入力してください。');
                         return;
                     }
 

@@ -39,12 +39,11 @@ class PortalListPage(AdminPortalPage):
 
     @classmethod
     def perform(cls, domain: str, event: APIGatewayProxyEvent):
-        style_nonce = create_nonce()
         script_nonce = create_nonce()
 
         try:
             links = DelibirdLinkTableModel.scan_domain(domain)
-            html_content = cls._get_links_html(domain, links, style_nonce=style_nonce, script_nonce=script_nonce)
+            html_content = cls._get_links_html(domain, links, script_nonce=script_nonce)
             if html_content is None:
                 raise RuntimeError("Failed to generate HTML content.")
         except Exception:
@@ -54,4 +53,4 @@ class PortalListPage(AdminPortalPage):
         # HTMLレスポンスを返す
         return success_response(HTTPStatus.OK, html_content,
                                 content_type='text/html;charset=utf-8', use_css=True, use_bootstrap=True, use_self_api=True,
-                                style_nonce=style_nonce, script_nonce=script_nonce)
+                                script_nonce=script_nonce)
