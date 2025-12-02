@@ -232,10 +232,9 @@
                                         {% if link.query_omit %}
                                         <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Omit</span>
                                         {% else %}
-                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Include</span>
-                                        {% endif %}
-                                        {% if link.query_whitelist %}
-                                        <br><small class="text-muted">Whitelist: {{ link.query_whitelist|join(', ') }}</small>
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i>
+                                        {% if link.query_whitelist %} Whitelist{% else %} Include{% endif %}
+                                        </span>
                                         {% endif %}
                                     </td>
 
