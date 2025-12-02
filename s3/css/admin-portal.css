@@ -1,3 +1,25 @@
+.env-badge {
+    display: inline-block;
+    padding: 0.15em 0.2em;
+    font-size: 0.45em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.env-badge.prod {
+    background-color: #dc3545;
+}
+
+.env-badge.dev {
+    background-color: #0d6efd;
+}
+
 .status-badge {
     min-width: 60px;
 }

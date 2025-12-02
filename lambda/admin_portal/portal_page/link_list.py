@@ -13,7 +13,8 @@ from util.response_util import error_response, success_response
 from util.static_resource_util import load_function_html
 
 logger = setup_logger("admin_portal.link_list_page")
-_LINK_PREFIX = os.environ["LINK_PREFIX"]
+_ENVIRONMENT = str(os.environ["DELIBIRD_ENV"])
+_LINK_PREFIX = str(os.environ["LINK_PREFIX"])
 
 
 class PortalListPage(AdminPortalPage):
@@ -28,6 +29,7 @@ class PortalListPage(AdminPortalPage):
 
         return load_function_html("static/links.html", {
             'domain': domain,
+            'delibird_environment': _ENVIRONMENT,
             'link_prefix': _LINK_PREFIX + "/" if _LINK_PREFIX else "",
             'links': links,
             'active_count': active_count,
