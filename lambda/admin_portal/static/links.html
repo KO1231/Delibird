@@ -204,7 +204,9 @@
                                         {% else %}
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
                                         {% endif %}
+                                        {% if inactive_reason.status.name != "MAX_USES_EXCEEDED" %}
                                         <br><small class="text-muted">{{ inactive_reason.reason }}</small>
+                                        {% endif %}
                                         {% endif %}
                                         {% endif %}
                                     </td>
@@ -216,13 +218,11 @@
 
                                     <!-- Max Uses -->
                                     <td>
-                                        {% if link.max_uses %}
-                                        <span class="badge bg-warning text-dark">{{ link.max_uses }}</span>
-                                        {% if link.uses >= link.max_uses %}
+                                        <span class="badge bg-warning text-dark">
+                                        {% if link.max_uses %}{{ link.max_uses }}{% else %}∞{% endif %}
+                                        </span>
+                                        {% if link.max_uses and link.uses >= link.max_uses %}
                                         <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Exceeded</small>
-                                        {% endif %}
-                                        {% else %}
-                                        <span class="text-muted">∞</span>
                                         {% endif %}
                                     </td>
 
