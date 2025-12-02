@@ -226,12 +226,9 @@
 
                                     <!-- Max Uses -->
                                     <td>
-                                        <span class="badge bg-warning text-dark">
+                                        <span class="badge {% if link.max_uses and link.uses >= link.max_uses %}bg-danger{% else %}bg-warning text-black{% endif %}">
                                         {% if link.max_uses %}{{ link.max_uses }}{% else %}∞{% endif %}
                                         </span>
-                                        {% if link.max_uses and link.uses >= link.max_uses %}
-                                        <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Exceeded</small>
-                                        {% endif %}
                                     </td>
 
                                     <!-- Expiration Date -->
