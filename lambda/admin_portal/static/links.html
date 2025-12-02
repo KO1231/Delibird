@@ -144,12 +144,12 @@
                             <tbody>
                                 {% for link in links %}
                                 {% set is_active, inactive_reason = link.check_active() %}
-                                <tr class="{% if not is_active %}
-                                {% if link.disabled %}disabled-row
-                                {% elif link.expiration_date and link.expiration_date < now %}expired-row
-                                {% elif link.max_uses and link.uses >= link.max_uses %}max-uses-exceeded-row
-                                {% endif %}
-                            {% endif %}">
+                                <tr class="{%- if not is_active %}
+                                {%- if link.disabled %}disabled-row
+                                {%- elif link.expiration_date and link.expiration_date < now %}expired-row
+                                {%- elif link.max_uses and link.uses >= link.max_uses %}max-uses-exceeded-row
+                                {%- endif %}
+                                {%- endif %}">
                                     <!-- Slug -->
                                     <td>
                                         <strong>
