@@ -14,7 +14,7 @@ from pynamodb.expressions.operand import Path
 from pynamodb.models import Model
 
 from ddb.datetime_attribute import DateTimeAttribute
-from util.date_util import get_jst_datetime_now
+from util.date_util import get_jst_datetime_now, as_jst
 from util.logger_util import setup_logger
 
 _REGION = os.environ["AWS_REGION"]
@@ -85,6 +85,23 @@ class DelibirdLink:
         self.uses += 1
         return True
 
+    @staticmethod
+    def from_model(model: "DelibirdLinkTableModel") -> "DelibirdLink":
+        return DelibirdLink(
+            _model=model,
+            domain=model.domain,
+            link_slug=model.slug,
+            link_origin=model.origin,
+            status=HTTPStatus(model.status),
+            disabled=model.disabled,
+            uses=int(model.uses),
+            expiration_date=as_jst(model.expiration_date) if model.expiration_date is not None else None,
+            expired_origin=model.expired_origin,
+            query_omit=model.query_omit,
+            query_whitelist=model.query_whitelist,
+            max_uses=int(model.max_uses) if model.max_uses is not None else None
+        )
+
 
 class DelibirdLinkTableModel(Model):
     class Meta:
@@ -112,24 +129,15 @@ class DelibirdLinkTableModel(Model):
             result = cls.get(hash_key=domain, range_key=slug, consistent_read=True)
         except cls.DoesNotExist:
             return None
-        except Exception as e:
-            logger.exception(f"Failed to fetch delibird link data for domain: {domain}, slug: {slug}, Table: {cls.Meta.table_name}")
-            raise RuntimeError('Failed to fetch delibird link data.') from e
+        return DelibirdLink.from_model(result)
 
-        return DelibirdLink(
-            _model=result,
-            domain=result.domain,
-            link_slug=result.slug,
-            link_origin=result.origin,
-            status=HTTPStatus(result.status),
-            disabled=result.disabled,
-            uses=int(result.uses),
-            expiration_date=result.expiration_date,
-            expired_origin=result.expired_origin,
-            query_omit=result.query_omit,
-            query_whitelist=result.query_whitelist,
-            max_uses=int(result.max_uses) if result.max_uses is not None else None
-        )
+    @classmethod
+    def scan_domain(cls, domain: str) -> list["DelibirdLink"]:
+        try:
+            return [DelibirdLink.from_model(model) for model in cls.query(hash_key=domain, consistent_read=True)]
+        except Exception as e:
+            logger.exception(f"Failed to scan delibird link data for domain: {domain}, Table: {cls.Meta.table_name}")
+            raise RuntimeError('Failed to scan delibird link data.') from e
 
     def __str__(self):
         try:

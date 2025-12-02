@@ -4,9 +4,9 @@ from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent, e
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from ddb.models.delibird_link import DelibirdLinkTableModel, DelibirdLinkInactiveStatus
-from parser import parse_request_path, parse_origin, parse_domain
 from query import queried_origin
 from util.logger_util import setup_logger
+from util.parse_util import parse_request_path, parse_origin, parse_domain
 from util.response_util import redirect_response, error_response
 
 logger = setup_logger("redirect_request")
@@ -33,7 +33,12 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         return error_response(HTTPStatus.NOT_FOUND)
 
     # pathからリンク情報を取得
-    link = DelibirdLinkTableModel.get_from_request(domain, request_path)
+    try:
+        link = DelibirdLinkTableModel.get_from_request(domain, request_path)
+    except Exception:
+        logger.exception(
+            f"Failed to fetch delibird link data for domain: {domain}, slug: {request_path}, Table: {DelibirdLinkTableModel.Meta.table_name}")
+        return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
     interrupt_origin = None
 
     ## リンクが存在しない場合
