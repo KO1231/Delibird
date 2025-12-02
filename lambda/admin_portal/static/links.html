@@ -28,8 +28,29 @@
                 white-space: nowrap;
             }
 
-            .link-active {
+            .link-status {
+                width: 80px;
+                max-width: 80px;
+            }
+
+            .link-expiration-date {
+                width: 150px;
+                max-width: 180px;
+            }
+
+            .link-query {
+                width: 100px;
                 max-width: 100px;
+            }
+
+            .link-active {
+                width: 100px;
+                max-width: 100px;
+            }
+
+            .link-edit {
+                width: 50px;
+                max-width: 50px;
             }
 
             .table-responsive {
@@ -185,7 +206,7 @@
                                     </td>
 
                                     <!-- HTTP Status -->
-                                    <td>
+                                    <td class="link-status">
                                     <span class="badge status-badge {% if link.status.value < 300 %}bg-success{% elif link.status.value < 400 %}bg-info{% else %}bg-warning{% endif %}">
                                         {{ link.status.value }}
                                     </span>
@@ -232,7 +253,7 @@
                                     </td>
 
                                     <!-- Expiration Date -->
-                                    <td>
+                                    <td class="link-expiration-date">
                                         {% if link.expiration_date %}
                                         {% if link.expiration_date < now %}<span class="text-danger">{% endif %}
                                         {{ link.expiration_date.strftime('%Y-%m-%d %H:%M') }}
@@ -243,7 +264,7 @@
                                     </td>
 
                                     <!-- Query Settings -->
-                                    <td>
+                                    <td class="link-query">
                                         {% if link.query_omit %}
                                         <span class="badge bg-secondary"><i class="bi bi-slash-circle"></i> Omit</span>
                                         {% else %}
@@ -254,7 +275,7 @@
                                     </td>
 
                                     <!-- Edit Button -->
-                                    <td>
+                                    <td class="link-edit">
                                         <button type="button" class="btn btn-sm btn-outline-primary edit-link-btn"
                                                 data-slug="{{ link.link_slug }}"
                                                 data-origin="{{ link.link_origin }}"
