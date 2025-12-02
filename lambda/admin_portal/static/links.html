@@ -131,7 +131,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Slug</th>
-                                    <th>Origin URL</th>
+                                    <th>Origin</th>
                                     <th>Status</th>
                                     <th>Active</th>
                                     <th>Uses</th>
@@ -163,13 +163,13 @@
                                         {% endif %}
                                     </td>
 
-                                    <!-- Origin URL -->
+                                    <!-- Origin -->
                                     <td class="link-url">
                                         <a href="{{ link.link_origin }}" target="_blank" class="text-decoration-none">
                                             {{ link.link_origin }}
                                         </a>
                                         {% if not is_active and link.expired_origin %}
-                                        <br><small class="text-muted">Expired Origin: {{ link.expired_origin }}</small>
+                                        <br><small class="text-muted">Expired:<br>{{ link.expired_origin }}</small>
                                         {% endif %}
                                     </td>
 
@@ -335,9 +335,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Origin URL -->
+                                <!-- Origin -->
                                 <div class="mb-3">
-                                    <label for="linkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <label for="linkOrigin" class="form-label">Origin <span class="text-danger">*</span></label>
                                     <input type="url" class="form-control" id="linkOrigin" name="link_origin" required
                                            placeholder="https://example.com/destination">
                                     <div class="form-text">リダイレクト先のURL</div>
@@ -391,7 +391,7 @@
 
                                 <!-- Expired Origin -->
                                 <div class="mb-3">
-                                    <label for="expiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <label for="expiredOrigin" class="form-label">Expired Origin</label>
                                     <input type="url" class="form-control" id="expiredOrigin" name="expired_origin"
                                            placeholder="https://example.com/expired">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
@@ -443,9 +443,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Origin URL -->
+                                <!-- Origin -->
                                 <div class="mb-3">
-                                    <label for="editLinkOrigin" class="form-label">Origin URL <span class="text-danger">*</span></label>
+                                    <label for="editLinkOrigin" class="form-label">Origin <span class="text-danger">*</span></label>
                                     <input type="url" class="form-control" id="editLinkOrigin" name="link_origin" required
                                            placeholder="https://example.com/destination" autocomplete="off">
                                     <div class="form-text">リダイレクト先のURL</div>
@@ -499,7 +499,7 @@
 
                                 <!-- Expired Origin -->
                                 <div class="mb-3">
-                                    <label for="editExpiredOrigin" class="form-label">Expired Origin URL</label>
+                                    <label for="editExpiredOrigin" class="form-label">Expired Origin</label>
                                     <input type="url" class="form-control" id="editExpiredOrigin" name="expired_origin"
                                            placeholder="https://example.com/expired" autocomplete="off">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
@@ -575,7 +575,7 @@
 
                     const originInput = document.getElementById('linkOrigin');
                     if (!originInput.value) {
-                        alert('Origin URLを入力してください。');
+                        alert('Originを入力してください。');
                         return;
                     }
 
@@ -707,7 +707,7 @@
                     const originInput = document.getElementById('editLinkOrigin');
 
                     if (!originInput.value) {
-                        alert('Origin URLを入力してください。');
+                        alert('Originを入力してください。');
                         return;
                     }
 
