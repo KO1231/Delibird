@@ -305,37 +305,6 @@
                 </div>
             </div>
 
-            <!-- Legend -->
-            {% if links %}
-            <div class="card mt-4 shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Legend</h6>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <span class="badge bg-success">Active</span> Link is currently active and usable
-                        </div>
-                        <div class="col-md-4">
-                            <span class="badge bg-danger">Inactive</span> Link is disabled, expired, or max uses exceeded
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-2 expired-row d-inline-block">Expired</div>
-                            Expiration date has passed
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-4">
-                            <div class="p-2 disabled-row d-inline-block">Disabled</div>
-                            Link is manually disabled
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-2 max-uses-exceeded-row d-inline-block">Limit</div>
-                            Maximum usage count reached
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
             <!-- Create Link Modal -->
             <div class="modal fade" id="createLinkModal" tabindex="-1" aria-labelledby="createLinkModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
