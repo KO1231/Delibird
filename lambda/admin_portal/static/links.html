@@ -17,6 +17,10 @@
                 word-break: break-all;
             }
 
+            .link-active {
+                max-width: 100px;
+            }
+
             .table-responsive {
                 font-size: 0.9rem;
             }
@@ -63,6 +67,10 @@
 
             .hidden-field {
                 display: none;
+            }
+
+            .bg-expired {
+                background-color: #6f42c1;
             }
         </style>
     </head>
@@ -173,12 +181,18 @@
                                     </td>
 
                                     <!-- Active Status -->
-                                    <td>
+                                    <td class="link-active">
                                         {% if is_active %}
                                         <span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>
                                         {% else %}
+                                        {% if not inactive_reason %}
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
-                                        {% if inactive_reason %}
+                                        {% else %}
+                                        {% if inactive_reason.status.name == "EXPIRED" %}
+                                        <span class="badge bg-expired"><i class="bi bi-clock-history"></i> Expired</span>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
+                                        {% endif %}
                                         <br><small class="text-muted">{{ inactive_reason.reason }}</small>
                                         {% endif %}
                                         {% endif %}
@@ -206,9 +220,7 @@
                                         {% if link.expiration_date %}
                                         {{ link.expiration_date.strftime('%Y-%m-%d %H:%M') }}
                                         {% if link.expiration_date < now %}
-                                        <br><span class="badge bg-danger"><i class="bi bi-clock"></i> Expired</span>
-                                        {% else %}
-                                        <br><span class="badge bg-info"><i class="bi bi-clock"></i> Active</span>
+                                        <br><span class="badge bg-expired"><i class="bi bi-clock"></i> Expired</span>
                                         {% endif %}
                                         {% else %}
                                         <span class="text-muted">-</span>
