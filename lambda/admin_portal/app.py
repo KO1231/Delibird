@@ -7,7 +7,7 @@ from portal_page.link_create import PortalLinkCreatePage
 from portal_page.link_list import PortalListPage
 from portal_page.link_update import PortalLinkUpdatePage
 from util.logger_util import setup_logger
-from util.parse_util import parse_domain
+from util.parse_util import parse_domain, parse_request_path
 from util.response_util import error_response
 
 logger = setup_logger("admin_portal")
@@ -18,12 +18,18 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     try:
         # parse domain
         domain: str = parse_domain(event.headers.get("Host", ""))
+        # parse path
+        request_path: str = parse_request_path(event.path_parameters.get("path", ""))
     except ValueError as e:
         logger.info(f"Get Invalid request: {e}")
         return error_response(HTTPStatus.BAD_REQUEST)
     except Exception:
         logger.exception(f"Failed to parse request.")
         return error_response(HTTPStatus.BAD_REQUEST)
+
+    if request_path:
+        logger.info(f"Get Invalid request path: {request_path}")
+        return error_response(HTTPStatus.NOT_FOUND)
 
     match event.http_method:
         case "GET":
