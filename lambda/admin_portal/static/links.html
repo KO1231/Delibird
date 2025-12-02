@@ -209,10 +209,10 @@
                                         </span>
                                         {% elif inactive_reason.status.name == "MAX_USES_EXCEEDED" %}
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Exceeded</span>
+                                        {% elif inactive_reason.status.name == "DISABLED" %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Disabled</span>
                                         {% else %}
-                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
-                                        {% endif %}
-                                        {% if not (inactive_reason.status.name == "EXPIRED" or inactive_reason.status.name == "MAX_USES_EXCEEDED") %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Unknown</span>
                                         <br><small class="text-muted">{{ inactive_reason.reason }}</small>
                                         {% endif %}
                                         {% endif %}
