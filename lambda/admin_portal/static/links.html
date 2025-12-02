@@ -146,7 +146,7 @@
                                     <th>Status</th>
                                     <th>Active</th>
                                     <th>Uses</th>
-                                    <th>Max Uses</th>
+                                    <th>Limit</th>
                                     <th>Expiration (JST)</th>
                                     <th>Query</th>
                                     <th>Edit</th>
@@ -224,7 +224,7 @@
                                         <span class="badge bg-primary">{{ link.uses }}</span>
                                     </td>
 
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <td>
                                         <span class="badge {% if link.max_uses and link.uses >= link.max_uses %}bg-danger{% else %}bg-warning text-black{% endif %}">
                                         {% if link.max_uses %}{{ link.max_uses }}{% else %}∞{% endif %}
@@ -234,10 +234,9 @@
                                     <!-- Expiration Date -->
                                     <td>
                                         {% if link.expiration_date %}
+                                        {% if link.expiration_date < now %}<span class="text-danger">{% endif %}
                                         {{ link.expiration_date.strftime('%Y-%m-%d %H:%M') }}
-                                        {% if link.expiration_date < now %}
-                                        <br><span class="badge bg-expired"><i class="bi bi-clock"></i> Expired</span>
-                                        {% endif %}
+                                        {% if link.expiration_date < now %}</span>{% endif %}
                                         {% else %}
                                         <span class="text-muted">-</span>
                                         {% endif %}
@@ -308,7 +307,7 @@
                             Link is manually disabled
                         </div>
                         <div class="col-md-4">
-                            <div class="p-2 max-uses-exceeded-row d-inline-block">Max Uses</div>
+                            <div class="p-2 max-uses-exceeded-row d-inline-block">Limit</div>
                             Maximum usage count reached
                         </div>
                     </div>
@@ -359,9 +358,9 @@
                                 </div>
 
                                 <div class="row">
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="maxUses" class="form-label">Max Uses</label>
+                                        <label for="maxUses" class="form-label">Limit</label>
                                         <input type="number" class="form-control" id="maxUses" name="max_uses" min="1"
                                                placeholder="無制限">
                                         <div class="form-text">最大使用回数（空欄で無制限）</div>
@@ -467,9 +466,9 @@
                                 </div>
 
                                 <div class="row">
-                                    <!-- Max Uses -->
+                                    <!-- Limit -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="editMaxUses" class="form-label">Max Uses</label>
+                                        <label for="editMaxUses" class="form-label">Limit</label>
                                         <input type="number" class="form-control" id="editMaxUses" name="max_uses" min="1"
                                                placeholder="無制限" autocomplete="off">
                                         <div class="form-text">最大使用回数（空欄で無制限）</div>
