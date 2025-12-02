@@ -200,11 +200,19 @@
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
                                         {% else %}
                                         {% if inactive_reason.status.name == "EXPIRED" %}
-                                        <span class="badge bg-expired"><i class="bi bi-clock-history"></i> Expired</span>
+                                        {% if link.expired_origin %}
+                                        <span class="badge bg-expired"><i class="bi bi-clock-history"></i>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i>
+                                        {% endif %}
+                                             Expired
+                                        </span>
+                                        {% elif inactive_reason.status.name == "MAX_USES_EXCEEDED" %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Exceeded</span>
                                         {% else %}
                                         <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactive</span>
                                         {% endif %}
-                                        {% if inactive_reason.status.name != "MAX_USES_EXCEEDED" %}
+                                        {% if not (inactive_reason.status.name == "EXPIRED" or inactive_reason.status.name == "MAX_USES_EXCEEDED") %}
                                         <br><small class="text-muted">{{ inactive_reason.reason }}</small>
                                         {% endif %}
                                         {% endif %}
