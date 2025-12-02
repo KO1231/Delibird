@@ -13,8 +13,19 @@
                 min-width: 60px;
             }
 
-            .link-url {
+            .link-slug {
                 word-break: break-all;
+                width: 250px;
+                max-width: 250px;
+            }
+
+            .link-origin {
+                word-break: break-all;
+                width: 350px;
+                max-width: 350px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .link-active {
@@ -151,7 +162,7 @@
                                 {%- endif %}
                                 {%- endif %}">
                                     <!-- Slug -->
-                                    <td>
+                                    <td class="link-slug">
                                         <strong>
                                             <a href="https://{{domain}}/{{link_prefix}}{{link.link_slug}}" target="_blank"
                                                class="text-decoration-none">
@@ -164,7 +175,7 @@
                                     </td>
 
                                     <!-- Origin -->
-                                    <td class="link-url">
+                                    <td class="link-origin">
                                         <a href="{{ link.link_origin }}" target="_blank" class="text-decoration-none">
                                             {{ link.link_origin }}
                                         </a>
