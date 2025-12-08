@@ -44,6 +44,9 @@ class DelibirdLink:
     disabled: bool = False
     uses: int = 0
 
+    memo: str = ""
+    tag: set[str] = None
+
     expiration_date: Optional[datetime] = None
     expired_origin: Optional[str] = None
 
@@ -55,6 +58,8 @@ class DelibirdLink:
     def __post_init__(self):
         if self.query_whitelist is None:
             self.query_whitelist = set()
+        if self.tag is None:
+            self.tag = set()
 
     def check_active(self) -> tuple[bool, Optional[DelibirdLinkInactiveReason]]:
         if self.disabled:
@@ -95,6 +100,8 @@ class DelibirdLink:
             status=HTTPStatus(model.status),
             disabled=model.disabled,
             uses=int(model.uses),
+            memo=model.memo,
+            tag=set(model.tag) if model.tag is not None else None,
             expiration_date=as_jst(model.expiration_date) if model.expiration_date is not None else None,
             expired_origin=model.expired_origin,
             query_omit=model.query_omit,
@@ -116,6 +123,8 @@ class DelibirdLinkTableModel(Model):
     status = NumberAttribute(null=False)
     disabled = BooleanAttribute(null=False, default=False)
     uses = NumberAttribute(null=False, default=0)
+    memo = UnicodeAttribute(null=False, default="")
+    tag = UnicodeSetAttribute(null=True)
 
     expiration_date = DateTimeAttribute(null=True)
     expired_origin = UnicodeAttribute(null=True)
