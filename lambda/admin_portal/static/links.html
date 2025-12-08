@@ -96,6 +96,20 @@
                                                 {{ link.link_slug }}
                                             </a>
                                         </strong>
+                                        {% if link.memo %}
+                                        <i class="bi bi-sticky-fill text-warning ms-1"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           data-bs-html="true"
+                                           title="{{ link.memo|replace('"', '&quot;')|replace('\n', '<br>') }}"></i>
+                                        {% endif %}
+                                        {% if link.tag %}
+                                        <i class="bi bi-tags-fill text-info ms-1"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           data-bs-html="true"
+                                           title="{{ link.tag|join(', ') }}"></i>
+                                        {% endif %}
                                     </td>
 
                                     <!-- Origin -->
@@ -189,6 +203,8 @@
                                                 data-expired-origin="{{ link.expired_origin or '' }}"
                                                 data-query-omit="{{ 'true' if link.query_omit else 'false' }}"
                                                 data-query-whitelist="{{ link.query_whitelist|join(',') if link.query_whitelist else '' }}"
+                                                data-memo="{{ link.memo or '' }}"
+                                                data-tag="{{ link.tag|join(',') if link.tag else '' }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editLinkModal">
                                             <i class="bi bi-pencil"></i>
@@ -303,6 +319,22 @@
                                            placeholder="https://example.com/expired">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
                                 </div>
+
+                                <!-- Memo -->
+                                <div class="mb-3">
+                                    <label for="memo" class="form-label">Memo</label>
+                                    <textarea class="form-control" id="memo" name="memo" rows="3"
+                                              placeholder="リンクに関するメモを入力"></textarea>
+                                    <div class="form-text">このリンクに関するメモ（オプション）</div>
+                                </div>
+
+                                <!-- Tag -->
+                                <div class="mb-3">
+                                    <label for="tag" class="form-label">Tag</label>
+                                    <input type="text" class="form-control" id="tag" name="tag"
+                                           placeholder="tag1,tag2,tag3">
+                                    <div class="form-text">カンマ区切りでタグを入力（オプション）</div>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -411,6 +443,22 @@
                                            placeholder="https://example.com/expired" autocomplete="off">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
                                 </div>
+
+                                <!-- Memo -->
+                                <div class="mb-3">
+                                    <label for="editMemo" class="form-label">Memo</label>
+                                    <textarea class="form-control" id="editMemo" name="memo" rows="3"
+                                              placeholder="リンクに関するメモを入力" autocomplete="off"></textarea>
+                                    <div class="form-text">このリンクに関するメモ（オプション）</div>
+                                </div>
+
+                                <!-- Tag -->
+                                <div class="mb-3">
+                                    <label for="editTag" class="form-label">Tag</label>
+                                    <input type="text" class="form-control" id="editTag" name="tag"
+                                           placeholder="tag1,tag2,tag3" autocomplete="off">
+                                    <div class="form-text">カンマ区切りでタグを入力（オプション）</div>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -438,6 +486,12 @@
         <script{% if script_nonce %} nonce="{{ script_nonce }}"{% endif %}>
             // Query Omit チェックボックスの制御
             document.addEventListener('DOMContentLoaded', function() {
+                // Bootstrap ツールチップの初期化
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
                 const queryOmitCheckbox = document.getElementById('queryOmit');
                 const queryWhitelistContainer = document.getElementById('queryWhitelistContainer');
                 const queryWhitelistInput = document.getElementById('queryWhitelist');
@@ -510,6 +564,16 @@
                     const expiredOrigin = document.getElementById('expiredOrigin').value;
                     if (expiredOrigin) {
                         data.expired_origin = expiredOrigin;
+                    }
+
+                    const memo = document.getElementById('memo').value;
+                    if (memo) {
+                        data.memo = memo;
+                    }
+
+                    const tag = document.getElementById('tag').value;
+                    if (tag) {
+                        data.tag = tag.split(',').map(s => s.trim()).filter(s => s);
                     }
 
                     // query_omitがfalseの場合のみ、query_whitelistを送信
@@ -587,6 +651,8 @@
                         const expiredOrigin = this.getAttribute('data-expired-origin');
                         const queryOmit = this.getAttribute('data-query-omit') === 'true';
                         const queryWhitelist = this.getAttribute('data-query-whitelist');
+                        const memo = this.getAttribute('data-memo');
+                        const tag = this.getAttribute('data-tag');
 
                         // フォームに値を設定
                         document.getElementById('editLinkSlug').value = slug;
@@ -598,6 +664,8 @@
                         document.getElementById('editExpiredOrigin').value = expiredOrigin;
                         document.getElementById('editQueryOmit').checked = queryOmit;
                         document.getElementById('editQueryWhitelist').value = queryWhitelist;
+                        document.getElementById('editMemo').value = memo;
+                        document.getElementById('editTag').value = tag;
 
                         // Query Whitelist の状態を更新
                         updateEditQueryWhitelistState();
@@ -642,6 +710,16 @@
                     const expiredOrigin = document.getElementById('editExpiredOrigin').value;
                     if (expiredOrigin) {
                         data.expired_origin = expiredOrigin;
+                    }
+
+                    const memo = document.getElementById('editMemo').value;
+                    if (memo) {
+                        data.memo = memo;
+                    }
+
+                    const tag = document.getElementById('editTag').value;
+                    if (tag) {
+                        data.tag = tag.split(',').map(s => s.trim()).filter(s => s);
                     }
 
                     // query_omitがfalseの場合のみ、query_whitelistを送信
