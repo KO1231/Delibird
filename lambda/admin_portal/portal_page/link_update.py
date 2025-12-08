@@ -32,6 +32,8 @@ class PortalLinkUpdatePage(AdminPortalPage):
                 status=HTTPStatus(int(body["status"])),
                 disabled=bool(body["disabled"]),
 
+                memo=str(body["memo"]) if "memo" in body else "",
+                tag=set(body["tag"]) if "tag" in body else None,
                 expiration_date=as_jst(datetime.fromisoformat(str(body["expiration_date"]))) if "expiration_date" in body else None,
                 expired_origin=str(body["expired_origin"]) if "expired_origin" in body else None,
                 query_omit=bool(body["query_omit"]),
@@ -71,6 +73,8 @@ class PortalLinkUpdatePage(AdminPortalPage):
                 DelibirdLinkTableModel.origin.set(link_data.link_origin),
                 DelibirdLinkTableModel.status.set(int(link_data.status)),
                 DelibirdLinkTableModel.disabled.set(link_data.disabled),
+                DelibirdLinkTableModel.memo.set(link_data.memo),
+                DelibirdLinkTableModel.tag.set(link_data.tag),
                 DelibirdLinkTableModel.expiration_date.set(link_data.expiration_date),
                 DelibirdLinkTableModel.expired_origin.set(link_data.expired_origin),
                 DelibirdLinkTableModel.query_omit.set(link_data.query_omit),

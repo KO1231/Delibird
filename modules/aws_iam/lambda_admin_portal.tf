@@ -50,6 +50,8 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
               "status",
               "max_uses",
               "disabled",
+              "memo",
+              "tag",
               "expiration_date",
               "expired_origin",
               "query_omit",
