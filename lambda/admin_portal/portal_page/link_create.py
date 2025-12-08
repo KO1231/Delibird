@@ -33,6 +33,8 @@ class PortalLinkCreatePage(AdminPortalPage):
                 status=HTTPStatus(int(body["status"])),
                 disabled=bool(body["disabled"]),
 
+                memo=str(body["memo"]) if "memo" in body else "",
+                tag=set(body["tag"]) if "tag" in body else None,
                 expiration_date=as_jst(datetime.fromisoformat(str(body["expiration_date"]))) if "expiration_date" in body else None,
                 expired_origin=str(body["expired_origin"]) if "expired_origin" in body else None,
                 query_omit=bool(body["query_omit"]),
@@ -78,6 +80,8 @@ class PortalLinkCreatePage(AdminPortalPage):
                 disabled=link_data.disabled,
                 uses=0,
 
+                memo=link_data.memo,
+                tag=link_data.tag,
                 expiration_date=link_data.expiration_date,
                 expired_origin=link_data.expired_origin,
                 query_omit=link_data.query_omit,
