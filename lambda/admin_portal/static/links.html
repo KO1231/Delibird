@@ -241,8 +241,8 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="linkSlug" class="form-label">Slug <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="linkSlug" name="link_slug" required
-                                               pattern="[a-zA-Z0-9_\-]+" title="英数字、ハイフン、アンダースコアのみ使用可能">
-                                        <div class="form-text">英数字、ハイフン、アンダースコアのみ使用可能</div>
+                                               pattern="[a-zA-Z0-9_\-/]+" title="英数字、ハイフン、アンダースコア、スラッシュのみ使用可能">
+                                        <div class="form-text">英数字、ハイフン、アンダースコア、スラッシュのみ使用可能</div>
                                     </div>
 
                                     <!-- HTTP Status -->
@@ -522,7 +522,7 @@
                     e.stopPropagation();
 
                     const slugInput = document.getElementById('linkSlug');
-                    const slugPattern = /^[a-zA-Z0-9_-]+$/;
+                    const slugPattern = /^[a-zA-Z0-9_\-/]+$/;
 
                     if (!slugInput.value) {
                         alert('Slugを入力してください。');
@@ -530,7 +530,7 @@
                     }
 
                     if (!slugPattern.test(slugInput.value)) {
-                        alert('Slugは英数字、ハイフン、アンダースコアのみ使用可能です。');
+                        alert('Slugは英数字、ハイフン、アンダースコア、スラッシュのみ使用可能です。');
                         return;
                     }
 
