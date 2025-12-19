@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
@@ -18,6 +19,8 @@ from util.date_util import get_jst_datetime_now, as_jst
 from util.logger_util import setup_logger
 
 _REGION = os.environ["AWS_REGION"]
+_MAX_SLUG_LENGTH = 255
+_SLUG_PATTERN = re.compile(r'^[a-zA-Z0-9\-_]+(?:/[a-zA-Z0-9\-_]+)*$', re.ASCII)
 
 logger = setup_logger("delibird.link_table", logging.INFO)
 
@@ -55,11 +58,27 @@ class DelibirdLink:
 
     max_uses: Optional[int] = None
 
+    @staticmethod
+    def _validation(link: "DelibirdLink") -> None:
+        # domain
+        if not link.domain:
+            raise ValueError("Domain is required.")
+        # slug
+        if (not (slug := link.link_slug)) or (len(slug) > _MAX_SLUG_LENGTH) or (not _SLUG_PATTERN.fullmatch(slug)):
+            raise ValueError(f"Invalid slug: {slug}")
+        # origin
+        if not link.link_origin:
+            raise ValueError("Origin is required.")
+        # status
+        if not link.status.is_redirection:
+            raise ValueError(f"Status code {link.status} is not a redirection status.")
+
     def __post_init__(self):
         if self.query_whitelist is None:
             self.query_whitelist = set()
         if self.tag is None:
             self.tag = set()
+        DelibirdLink._validation(self)
 
     def check_active(self) -> tuple[bool, Optional[DelibirdLinkInactiveReason]]:
         if self.disabled:
