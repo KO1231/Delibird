@@ -7,7 +7,7 @@ _MAX_QUERY_VALUE_LENGTH = int(os.environ["MAX_QUERY_VALUE_LENGTH"])
 _MAX_TOTAL_QUERY_PARAMS = int(os.environ["MAX_TOTAL_QUERY_PARAMS"])
 
 
-def queried_origin(origin: str, data: dict[str, list[str]], query_whitelist: set[str]) -> str:
+def queried_origin(origin: str, data: dict[str, list[str]], query_whitelist: set[str], query_blacklist: set[str]) -> str:
     """クエリパラメータを付与したURLを返す"""
     parsed_url = urlparse(origin)
     existing_query_pairs = [(k, v) for k, v in parse_qsl(parsed_url.query, strict_parsing=True)]
@@ -31,6 +31,10 @@ def queried_origin(origin: str, data: dict[str, list[str]], query_whitelist: set
     if len(query_whitelist) > 0:
         # ホワイトリストフィルタリング
         query_pairs = [(k, v) for k, v in query_pairs if k in query_whitelist]
+
+    if len(query_blacklist) > 0:
+        # ブラックリストフィルタリング
+        query_pairs = [(k, v) for k, v in query_pairs if k not in query_blacklist]
 
     query_string = urlencode(query_pairs, doseq=False)
     return urlunparse((

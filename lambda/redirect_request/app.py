@@ -10,6 +10,8 @@ from util.parse_util import parse_request_path, parse_origin, parse_domain
 from util.response_util import redirect_response, error_response
 
 logger = setup_logger("redirect_request")
+_NONCE_QUERY_KEY = "n"
+_CHALLENGE_QUERY_KEY = "c"
 
 
 @event_source(data_class=APIGatewayProxyEvent)
@@ -92,7 +94,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     if not link.query_omit:
         logger.info(f"Link(domain: {domain}, slug: {request_path}) has disabled query omission. Appending query parameters.")
         try:
-            origin = queried_origin(origin, event.resolved_query_string_parameters, link.query_whitelist)
+            origin = queried_origin(origin, event.resolved_query_string_parameters, link.query_whitelist,
+                                    {_NONCE_QUERY_KEY, _CHALLENGE_QUERY_KEY} if link.is_protected() else set())
         except ValueError:
             logger.exception(f"Invalid query parameters for domain: {domain}, slug: {request_path}, URL: {origin}")
             return error_response(HTTPStatus.BAD_REQUEST)
