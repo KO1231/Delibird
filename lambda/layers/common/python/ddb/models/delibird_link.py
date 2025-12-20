@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -121,7 +122,7 @@ class DelibirdLink:
         if not nonce:
             raise ValueError("Nonce is required.")
         expected = hashlib.sha256(f"{self._passphrase}#{nonce}".encode()).hexdigest()
-        return challenge == expected
+        return hmac.compare_digest(challenge, expected)
 
     @staticmethod
     def from_model(model: "DelibirdLinkTableModel") -> "DelibirdLink":
