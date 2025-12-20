@@ -14,6 +14,11 @@ module "aws_iam" {
     arn  = module.aws_dynamodb.link_table.arn
   }
 
+  ddb_link_nonce_table = {
+    name = module.aws_dynamodb.link_nonce_table.name
+    arn  = module.aws_dynamodb.link_nonce_table.arn
+  }
+
   lambda_redirect_request = {
     name = module.aws_lambda.lambda_redirect_request.function_name
     arn  = module.aws_lambda.lambda_redirect_request.arn
@@ -40,6 +45,11 @@ module "aws_lambda" {
     arn  = module.aws_dynamodb.link_table.arn
   }
 
+  ddb_link_nonce_table = {
+    name = module.aws_dynamodb.link_nonce_table.name
+    arn  = module.aws_dynamodb.link_nonce_table.arn
+  }
+
   role_redirect_request = {
     name = module.aws_iam.role_lambda_redirect_request.name
     arn  = module.aws_iam.role_lambda_redirect_request.arn
@@ -50,9 +60,10 @@ module "aws_lambda" {
     arn  = module.aws_iam.role_lambda_admin_portal.arn
   }
 
-  link_prefix                    = "" # TODO: Change value as needed (e.g. https://example.com/dev/.... -> "dev")
-  allowed_domain                 = local.config["allowed_domain"]
-  reserved_concurrent_executions = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
+  link_prefix                           = "" # TODO: Change value as needed (e.g. https://example.com/dev/.... -> "dev")
+  allowed_domain                        = local.config["allowed_domain"]
+  protected_link_request_nonce_lifetime = 300 # TODO: Change value as needed
+  reserved_concurrent_executions        = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
 }
 
 module "aws_s3" {

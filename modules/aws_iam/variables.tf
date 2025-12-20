@@ -10,6 +10,13 @@ variable "ddb_link_table" {
   })
 }
 
+variable "ddb_link_nonce_table" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}
+
 variable "lambda_redirect_request" {
   type = object({
     name = string

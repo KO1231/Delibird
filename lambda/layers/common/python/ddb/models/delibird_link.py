@@ -1,6 +1,9 @@
+import hashlib
+import hmac
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum, auto
@@ -18,6 +21,10 @@ from util.date_util import get_jst_datetime_now, as_jst
 from util.logger_util import setup_logger
 
 _REGION = os.environ["AWS_REGION"]
+_MAX_SLUG_LENGTH = 255
+_SLUG_PATTERN = re.compile(r'^[a-zA-Z0-9\-_]+(?:/[a-zA-Z0-9\-_]+)*$', re.ASCII)
+_MAX_PASSPHRASE_LENGTH = 255
+_PASSPHRASE_PATTERN = re.compile(r'^[A-Za-z0-9\-_/*+.!#$%&~@=^]+$', re.ASCII)
 
 logger = setup_logger("delibird.link_table", logging.INFO)
 
@@ -50,16 +57,40 @@ class DelibirdLink:
     expiration_date: Optional[datetime] = None
     expired_origin: Optional[str] = None
 
+    _passphrase: Optional[str] = None
+
     query_omit: bool = False
     query_whitelist: set[str] = None
 
     max_uses: Optional[int] = None
+
+    @staticmethod
+    def _validation(link: "DelibirdLink") -> None:
+        # domain
+        if not link.domain:
+            raise ValueError("Domain is required.")
+        # slug
+        if (not (slug := link.link_slug)) or (len(slug) > _MAX_SLUG_LENGTH) or (not _SLUG_PATTERN.fullmatch(slug)):
+            raise ValueError(f"Invalid slug: {slug}")
+        # origin
+        if not link.link_origin:
+            raise ValueError("Origin is required.")
+        # status
+        if not link.status.is_redirection:
+            raise ValueError(f"Status code {link.status} is not a redirection status.")
+        # passphrase
+        if link._passphrase is not None:
+            if len(link._passphrase) == 0:
+                link._passphrase = None
+            elif (len(link._passphrase) > _MAX_PASSPHRASE_LENGTH) or (not _PASSPHRASE_PATTERN.fullmatch(link._passphrase)):
+                raise ValueError("Invalid passphrase.")
 
     def __post_init__(self):
         if self.query_whitelist is None:
             self.query_whitelist = set()
         if self.tag is None:
             self.tag = set()
+        DelibirdLink._validation(self)
 
     def check_active(self) -> tuple[bool, Optional[DelibirdLinkInactiveReason]]:
         if self.disabled:
@@ -90,6 +121,17 @@ class DelibirdLink:
         self.uses += 1
         return True
 
+    def is_protected(self) -> bool:
+        return (self._passphrase is not None) and (not self._passphrase.isspace())
+
+    def validate_challenge(self, nonce: str, challenge: str) -> bool:
+        if not self.is_protected():
+            raise ValueError("Link is not protected.")
+        if not nonce:
+            raise ValueError("Nonce is required.")
+        expected = hashlib.sha256(f"{self._passphrase}#{nonce}".encode()).hexdigest()
+        return hmac.compare_digest(challenge, expected)
+
     @staticmethod
     def from_model(model: "DelibirdLinkTableModel") -> "DelibirdLink":
         return DelibirdLink(
@@ -104,6 +146,7 @@ class DelibirdLink:
             tag=set(model.tag) if model.tag is not None else None,
             expiration_date=as_jst(model.expiration_date) if model.expiration_date is not None else None,
             expired_origin=model.expired_origin,
+            _passphrase=model.passphrase,
             query_omit=model.query_omit,
             query_whitelist=model.query_whitelist,
             max_uses=int(model.max_uses) if model.max_uses is not None else None
@@ -128,6 +171,7 @@ class DelibirdLinkTableModel(Model):
 
     expiration_date = DateTimeAttribute(null=True)
     expired_origin = UnicodeAttribute(null=True)
+    passphrase = UnicodeAttribute(null=True)
     query_omit = BooleanAttribute(null=False, default=True)
     query_whitelist = UnicodeSetAttribute(null=True)
     max_uses = NumberAttribute(null=True)

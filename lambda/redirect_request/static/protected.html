@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>401 Unauthorized</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+              integrity="sha384-CK2SzKma4jA5H/MXDUU7i1TqZlCFaD4T01vtyDFvPlD97JQyS+IsSh1nI2EFbpyk" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://static.kazutech.jp/l/css/error.css">
+        <link rel="stylesheet" href="https://static.kazutech.jp/l/css/error-protected.css">
+        <meta name="robots" content="noindex,nofollow">
+    </head>
+    <body class="error-protected">
+        <div class="error-container">
+            <h1 class="error-code"><i class="bi bi-lock"></i></h1>
+            <p class="error-message">パスワード保護</p>
+            <p class="error-description">
+                このリンクはパスワードで保護されています。<br>
+                パスワードを入力してください。
+            </p>
+
+            <form id="password-form" class="password-form">
+                <div class="form-group">
+                    <div class="password-field">
+                        <input
+                                type="password"
+                                id="password-input"
+                                name="password"
+                                class="password-input"
+                                placeholder="パスワードを入力"
+                                required
+                                autocomplete="off"
+                        >
+                        <button type="button" id="toggle-password" class="toggle-password" aria-label="パスワードの表示切替">
+                            <i class="bi bi-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="submit-button">
+                        送信
+                    </button>
+                </div>
+                <div id="error-message" class="form-error-message hidden-field"></div>
+            </form>
+
+            <footer class="error-footer">
+                <p>&copy; 2025 Kazuhiro Oka</p>
+            </footer>
+        </div>
+
+
+        <script {%- if script_nonce %} nonce="{{ script_nonce }}" {%- endif %}>
+          document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('password-form');
+            const passwordInput = document.getElementById('password-input');
+            const errorMessage = document.getElementById('error-message');
+            const togglePasswordButton = document.getElementById('toggle-password');
+            const togglePasswordIcon = togglePasswordButton?.querySelector('i');
+
+            const nonce = '{{ request_nonce }}';
+            const default_error_message = '{{ default_error_message }}'
+
+            form.addEventListener('submit', async function (e) {
+              e.preventDefault();
+              if (!passwordInput.value || !passwordInput.value.match(/\S/g)) {
+                showError('パスワードを入力してください');
+                return;
+              }
+              const challenge = await crypto.subtle.digest('SHA-256', (new TextEncoder()).encode(passwordInput.value + '#' + nonce)).then(
+                  b => Array.from(new Uint8Array(b)).map((bb) => bb.toString(16).padStart(2, '0')).join(''))
+
+              const currentUrl = new URL(window.location.href);
+              currentUrl.searchParams.set('{{ challenge_query_key }}', challenge);
+              currentUrl.searchParams.set('{{ nonce_query_key }}', nonce);
+
+              window.location.href = currentUrl.toString();
+            });
+
+            if (default_error_message) {
+              showError(default_error_message);
+            }
+
+            function showError(message) {
+              errorMessage.textContent = message;
+              errorMessage.classList.remove('hidden-field');
+              passwordInput.classList.add('input-error');
+
+              passwordInput.animate([
+                {transform: 'translateX(0)'},
+                {transform: 'translateX(-10px)'},
+                {transform: 'translateX(10px)'},
+                {transform: 'translateX(-10px)'},
+                {transform: 'translateX(10px)'},
+                {transform: 'translateX(0)'}
+              ], {
+                duration: 400,
+                easing: 'ease-in-out'
+              });
+            }
+
+            function hideError() {
+              errorMessage.classList.add('hidden-field');
+              passwordInput.classList.remove('input-error');
+            }
+
+            passwordInput.addEventListener('input', function () {
+              if (!errorMessage.classList.contains('hidden-field')) {
+                hideError();
+              }
+            });
+
+            togglePasswordButton?.addEventListener('click', function () {
+              const isHidden = passwordInput.type === 'password';
+              passwordInput.type = isHidden ? 'text' : 'password';
+              togglePasswordIcon?.classList.toggle('bi-eye', !isHidden);
+              togglePasswordIcon?.classList.toggle('bi-eye-slash', isHidden);
+            });
+          });
+        </script>
+    </body>
+</html>
+

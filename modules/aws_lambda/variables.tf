@@ -34,6 +34,13 @@ variable "ddb_link_table" {
   })
 }
 
+variable "ddb_link_nonce_table" {
+  type = object({
+    name = string
+    arn  = string
+  })
+}
+
 variable "role_redirect_request" {
   type = object({
     name = string
@@ -55,6 +62,11 @@ variable "link_prefix" {
 variable "allowed_domain" {
   description = "Allowed domain for the Lambda function"
   type        = list(string)
+}
+
+variable "protected_link_request_nonce_lifetime" {
+  description = "Lifetime of nonce for protected link requests in seconds"
+  type        = number
 }
 
 variable "reserved_concurrent_executions" {

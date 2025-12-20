@@ -54,6 +54,7 @@ resource "aws_iam_role_policy" "lambda_admin_portal" {
               "tag",
               "expiration_date",
               "expired_origin",
+              "passphrase",
               "query_omit",
               "query_whitelist"
             ]
