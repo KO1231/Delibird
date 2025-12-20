@@ -76,6 +76,9 @@ class DelibirdLink:
         # status
         if not link.status.is_redirection:
             raise ValueError(f"Status code {link.status} is not a redirection status.")
+        # passphrase
+        if link._passphrase.isspace():
+            link._passphrase = None
 
     def __post_init__(self):
         if self.query_whitelist is None:
@@ -114,7 +117,7 @@ class DelibirdLink:
         return True
 
     def is_protected(self) -> bool:
-        return self._passphrase is not None
+        return (self._passphrase is not None) and (not self._passphrase.isspace())
 
     def validate_challenge(self, nonce: str, challenge: str) -> bool:
         if not self.is_protected():
