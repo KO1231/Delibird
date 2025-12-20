@@ -33,14 +33,14 @@ def _build_csp_header(*, use_css: bool = False, use_bootstrap: bool = False, use
     style_origin = [
         "https://static.kazutech.jp/l/css/" if use_css else None,
         "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
-        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/" if use_bootstrap else None,
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/" if use_bootstrap else None,
         f"'nonce-{style_nonce}'" if style_nonce else None
     ]
     img_origin = [
         "data:" if use_bootstrap else None,
     ]
     font_origin = [
-        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/" if use_bootstrap else None
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/" if use_bootstrap else None
     ]
     connect_origin = [
         "'self'" if use_self_api else None,
