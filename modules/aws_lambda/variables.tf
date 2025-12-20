@@ -64,6 +64,11 @@ variable "allowed_domain" {
   type        = list(string)
 }
 
+variable "protected_link_request_nonce_lifetime" {
+  description = "Lifetime of nonce for protected link requests in seconds"
+  type        = number
+}
+
 variable "reserved_concurrent_executions" {
   description = "Reserved concurrent executions for Lambda function (for cost and DDoS protection)"
   type        = number

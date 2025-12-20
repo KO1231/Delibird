@@ -60,9 +60,10 @@ module "aws_lambda" {
     arn  = module.aws_iam.role_lambda_admin_portal.arn
   }
 
-  link_prefix                    = "" # TODO: Change value as needed (e.g. https://example.com/dev/.... -> "dev")
-  allowed_domain                 = local.config["allowed_domain"]
-  reserved_concurrent_executions = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
+  link_prefix                           = "" # TODO: Change value as needed (e.g. https://example.com/dev/.... -> "dev")
+  allowed_domain                        = local.config["allowed_domain"]
+  protected_link_request_nonce_lifetime = 300 # TODO: Change value as needed
+  reserved_concurrent_executions        = local.config["aws"]["lambda"]["reserved_concurrent_executions"]
 }
 
 module "aws_s3" {
