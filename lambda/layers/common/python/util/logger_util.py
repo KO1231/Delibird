@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 _FORMAT = '%(levelname)s %(asctime)s [%(name)s - %(funcName)s] %(message)s'
@@ -32,3 +33,11 @@ def setup_logger(name: str, level: int = logging.DEBUG):
     logger.addHandler(_ERROR_HANDLER)
     # logger.addHandler(_LOG_FILE_HANDLER)
     return logger
+
+
+def setup_dev_logger():
+    if os.environ.get("DELIBIRD_ENV") != "dev":
+        return
+    log_pynamodb = logging.getLogger("pynamodb")
+    log_pynamodb.setLevel(logging.DEBUG)
+    log_pynamodb.addHandler(_HANDLER)

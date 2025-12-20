@@ -7,11 +7,12 @@ from ddb.models.delibird_link import DelibirdLinkTableModel, DelibirdLinkInactiv
 from models.delibird_nonce import DelibirdNonceTableModel
 from protected_util import protected_response, NONCE_QUERY_KEY, CHALLENGE_QUERY_KEY
 from query import queried_origin
-from util.logger_util import setup_logger
+from util.logger_util import setup_logger, setup_dev_logger
 from util.parse_util import parse_request_path, parse_origin, parse_domain, parse_query
 from util.response_util import redirect_response, error_response
 
 logger = setup_logger("redirect_request")
+setup_dev_logger()
 
 
 @event_source(data_class=APIGatewayProxyEvent)
