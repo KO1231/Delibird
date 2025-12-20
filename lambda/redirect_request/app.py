@@ -93,16 +93,19 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
         try:
             ## (nonceとchallengeがあったら、) まずnonceを取り出してDBと突合(存在確認・期限内・未使用・nonceの対象リクエストか)
-            nonce: str = parse_query(event.resolved_query_string_parameters, NONCE_QUERY_KEY, expected_single_value=True)
-            nonce_model = DelibirdNonceTableModel.get(nonce)
-            if not nonce_model.is_active():
-                # nonceが使用済 or 期限切れ
+            nonce: str = parse_query(event.resolved_query_string_parameters, NONCE_QUERY_KEY, expected_single_value=True, allow_notfound=True)
+            if not nonce:
                 return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
-            if nonce_model.domain != domain or nonce_model.slug != request_path:
+            nonce_model = DelibirdNonceTableModel.get(nonce)
+            if (not nonce_model.is_active()) or (nonce_model.domain != domain) or (nonce_model.slug != request_path):
+                # nonceが無効 or 使用済 or 期限切れ or ドメインやslugが不一致
                 return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
 
             ## 問題ないnonceの場合、challengeの確認
-            challenge = parse_query(event.resolved_query_string_parameters, CHALLENGE_QUERY_KEY, expected_single_value=True)
+            challenge = parse_query(event.resolved_query_string_parameters, CHALLENGE_QUERY_KEY, expected_single_value=True, allow_notfound=True)
+            if not challenge:
+                # challengeが無効
+                return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
             if not link.validate_challenge(nonce, challenge):
                 logger.info(f"Invalid challenge for domain: {domain}, slug: {request_path}")
                 nonce_model.mark_used()  # not successでもok
