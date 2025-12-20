@@ -36,6 +36,7 @@ class PortalLinkUpdatePage(AdminPortalPage):
                 tag=set(body["tag"]) if "tag" in body else None,
                 expiration_date=as_jst(datetime.fromisoformat(str(body["expiration_date"]))) if "expiration_date" in body else None,
                 expired_origin=str(body["expired_origin"]) if "expired_origin" in body else None,
+                _passphrase=str(body["passphrase"]) if "passphrase" in body else None,
                 query_omit=bool(body["query_omit"]),
                 query_whitelist=set(body["query_whitelist"]) if "query_whitelist" in body else None,
                 max_uses=int(body["max_uses"]) if "max_uses" in body else None,
@@ -77,6 +78,7 @@ class PortalLinkUpdatePage(AdminPortalPage):
                 DelibirdLinkTableModel.tag.set(link_data.tag),
                 DelibirdLinkTableModel.expiration_date.set(link_data.expiration_date),
                 DelibirdLinkTableModel.expired_origin.set(link_data.expired_origin),
+                DelibirdLinkTableModel.passphrase.set(link_data._passphrase),  # allow read private field
                 DelibirdLinkTableModel.query_omit.set(link_data.query_omit),
                 DelibirdLinkTableModel.query_whitelist.set(link_data.query_whitelist),
                 DelibirdLinkTableModel.max_uses.set(link_data.max_uses),

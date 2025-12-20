@@ -6,11 +6,12 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from portal_page.link_create import PortalLinkCreatePage
 from portal_page.link_list import PortalListPage
 from portal_page.link_update import PortalLinkUpdatePage
-from util.logger_util import setup_logger
+from util.logger_util import setup_logger, setup_dev_logger
 from util.parse_util import parse_domain, parse_request_path
 from util.response_util import error_response
 
 logger = setup_logger("admin_portal")
+setup_dev_logger()
 
 
 @event_source(data_class=APIGatewayProxyEvent)

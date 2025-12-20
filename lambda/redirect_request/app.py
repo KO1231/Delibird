@@ -4,12 +4,15 @@ from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent, e
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from ddb.models.delibird_link import DelibirdLinkTableModel, DelibirdLinkInactiveStatus
+from models.delibird_nonce import DelibirdNonceTableModel
+from protected_util import protected_response, NONCE_QUERY_KEY, CHALLENGE_QUERY_KEY
 from query import queried_origin
-from util.logger_util import setup_logger
-from util.parse_util import parse_request_path, parse_origin, parse_domain
+from util.logger_util import setup_logger, setup_dev_logger
+from util.parse_util import parse_request_path, parse_origin, parse_domain, parse_query
 from util.response_util import redirect_response, error_response
 
 logger = setup_logger("redirect_request")
+setup_dev_logger()
 
 
 @event_source(data_class=APIGatewayProxyEvent)
@@ -78,6 +81,52 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         logger.error(f"Link(domain: {domain}, slug: {request_path}) has invalid status code: {link.status}")
         return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
 
+    # リンクがパスフレーズ付きの場合
+    if link.is_protected():
+        ## nonceかchallengeがなかったら、未認証として認証ページを表示する。
+        if (NONCE_QUERY_KEY not in event.resolved_query_string_parameters) and (CHALLENGE_QUERY_KEY not in event.resolved_query_string_parameters):
+            logger.info(f"Link(domain: {domain}, slug: {request_path}) requires challenge.")
+            try:
+                return protected_response(domain, request_path)
+            except Exception:
+                logger.exception(f"Failed to generate protected response for domain: {domain}, slug: {request_path}")
+                return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+        try:
+            ## (nonceとchallengeがあったら、) まずnonceを取り出してDBと突合(存在確認・期限内・未使用・nonceの対象リクエストか)
+            nonce: str = parse_query(event.resolved_query_string_parameters, NONCE_QUERY_KEY, expected_single_value=True)
+            nonce_model = DelibirdNonceTableModel.get(nonce)
+            if not nonce_model.is_active():
+                # nonceが使用済 or 期限切れ
+                return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
+            if nonce_model.domain != domain or nonce_model.slug != request_path:
+                return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
+
+            ## 問題ないnonceの場合、challengeの確認
+            challenge = parse_query(event.resolved_query_string_parameters, CHALLENGE_QUERY_KEY, expected_single_value=True)
+            if not link.validate_challenge(nonce, challenge):
+                logger.info(f"Invalid challenge for domain: {domain}, slug: {request_path}")
+                nonce_model.mark_used()  # not successでもok
+                return protected_response(domain, request_path, "パスワードが正しくありません。")
+
+            # チャレンジ成功 -> nonce消込
+            try:
+                nonce_use_success, nonce_used_at = nonce_model.mark_used()
+            except Exception:
+                logger.exception(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
+                return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+            if not nonce_use_success:
+                # nonceがぎりぎり期限切れになった場合 or 競合リクエストで使用された場合
+                logger.info(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
+                return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
+
+        except DelibirdNonceTableModel.DoesNotExist:
+            # nonceがDB上に存在しない
+            logger.info(f"Invalid nonce for domain: {domain}, slug: {request_path}")
+            return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
+        except Exception:
+            logger.exception(f"Failed to parse challenge for domain: {domain}, slug: {request_path}")
+            return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+
     # リダイレクト先URLの決定
     origin_candidate = interrupt_origin or link.link_origin
     try:
@@ -92,7 +141,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     if not link.query_omit:
         logger.info(f"Link(domain: {domain}, slug: {request_path}) has disabled query omission. Appending query parameters.")
         try:
-            origin = queried_origin(origin, event.resolved_query_string_parameters, link.query_whitelist)
+            origin = queried_origin(origin, event.resolved_query_string_parameters, link.query_whitelist,
+                                    {NONCE_QUERY_KEY, CHALLENGE_QUERY_KEY} if link.is_protected() else set())
         except ValueError:
             logger.exception(f"Invalid query parameters for domain: {domain}, slug: {request_path}, URL: {origin}")
             return error_response(HTTPStatus.BAD_REQUEST)

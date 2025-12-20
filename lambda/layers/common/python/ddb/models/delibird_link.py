@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import json
 import logging
 import os
@@ -53,6 +55,8 @@ class DelibirdLink:
     expiration_date: Optional[datetime] = None
     expired_origin: Optional[str] = None
 
+    _passphrase: Optional[str] = None
+
     query_omit: bool = False
     query_whitelist: set[str] = None
 
@@ -72,6 +76,9 @@ class DelibirdLink:
         # status
         if not link.status.is_redirection:
             raise ValueError(f"Status code {link.status} is not a redirection status.")
+        # passphrase
+        if (link._passphrase is not None) and link._passphrase.isspace():
+            link._passphrase = None
 
     def __post_init__(self):
         if self.query_whitelist is None:
@@ -109,6 +116,17 @@ class DelibirdLink:
         self.uses += 1
         return True
 
+    def is_protected(self) -> bool:
+        return (self._passphrase is not None) and (not self._passphrase.isspace())
+
+    def validate_challenge(self, nonce: str, challenge: str) -> bool:
+        if not self.is_protected():
+            raise ValueError("Link is not protected.")
+        if not nonce:
+            raise ValueError("Nonce is required.")
+        expected = hashlib.sha256(f"{self._passphrase}#{nonce}".encode()).hexdigest()
+        return hmac.compare_digest(challenge, expected)
+
     @staticmethod
     def from_model(model: "DelibirdLinkTableModel") -> "DelibirdLink":
         return DelibirdLink(
@@ -123,6 +141,7 @@ class DelibirdLink:
             tag=set(model.tag) if model.tag is not None else None,
             expiration_date=as_jst(model.expiration_date) if model.expiration_date is not None else None,
             expired_origin=model.expired_origin,
+            _passphrase=model.passphrase,
             query_omit=model.query_omit,
             query_whitelist=model.query_whitelist,
             max_uses=int(model.max_uses) if model.max_uses is not None else None
@@ -147,6 +166,7 @@ class DelibirdLinkTableModel(Model):
 
     expiration_date = DateTimeAttribute(null=True)
     expired_origin = UnicodeAttribute(null=True)
+    passphrase = UnicodeAttribute(null=True)
     query_omit = BooleanAttribute(null=False, default=True)
     query_whitelist = UnicodeSetAttribute(null=True)
     max_uses = NumberAttribute(null=True)

@@ -29,6 +29,8 @@ resource "aws_lambda_function" "redirect_request" {
       DELIBIRD_ENV           = var.environment
       ENV_VAR                = var.environment_var
       LINK_TABLE_NAME        = var.ddb_link_table.name
+      NONCE_TABLE_NAME       = var.ddb_link_nonce_table.name
+      NONCE_LIFETIME_SECONDS = var.protected_link_request_nonce_lifetime
       STATIC_RESOURCE_DIR    = "/opt/delibird/static"
       ALLOWED_DOMAIN         = join(",", var.allowed_domain)
       MAX_QUERY_KEY_LENGTH   = "100"

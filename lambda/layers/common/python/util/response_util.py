@@ -24,7 +24,7 @@ def _load_error_html(status: HTTPStatus) -> tuple[Optional[str], bool]:
     return html_content, html_content is not None
 
 
-def _build_csp_header(*, use_css: bool = False, use_bootstrap: bool = False, use_self_api: bool = False,
+def _build_csp_header(*, use_css: bool = False, use_bootstrap: bool = False, use_bootstrap_icons: bool = False, use_self_api: bool = False,
                       style_nonce: str = None, script_nonce: str = None) -> str:
     script_origin = [
         "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
@@ -33,14 +33,14 @@ def _build_csp_header(*, use_css: bool = False, use_bootstrap: bool = False, use
     style_origin = [
         "https://static.kazutech.jp/l/css/" if use_css else None,
         "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/" if use_bootstrap else None,
-        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/" if use_bootstrap else None,
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/" if (use_bootstrap_icons or use_bootstrap) else None,
         f"'nonce-{style_nonce}'" if style_nonce else None
     ]
     img_origin = [
-        "data:" if use_bootstrap else None,
+        "data:" if (use_bootstrap_icons or use_bootstrap) else None,
     ]
     font_origin = [
-        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/" if use_bootstrap else None
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/" if (use_bootstrap_icons or use_bootstrap) else None
     ]
     connect_origin = [
         "'self'" if use_self_api else None,
@@ -68,12 +68,12 @@ def _build_csp_header(*, use_css: bool = False, use_bootstrap: bool = False, use
 
 
 def _generate_response_headers(content_type: str = None, *,
-                               use_css: bool = False, use_bootstrap: bool = False, use_self_api: bool = False,
+                               use_css: bool = False, use_bootstrap: bool = False, use_bootstrap_icons: bool = False, use_self_api: bool = False,
                                style_nonce: str = None, script_nonce: str = None) -> dict[str, str]:
     headers = {
         "Content-Type": content_type or "application/json;charset=utf-8",
         "Content-Security-Policy": _build_csp_header(
-            use_css=use_css, use_bootstrap=use_bootstrap, use_self_api=use_self_api,
+            use_css=use_css, use_bootstrap=use_bootstrap, use_bootstrap_icons=use_bootstrap_icons, use_self_api=use_self_api,
             style_nonce=style_nonce, script_nonce=script_nonce),
         "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
         "Pragma": "no-cache",
@@ -110,13 +110,13 @@ def error_response(status: HTTPStatus, force_json: bool = False):
 
 
 def success_response(status: HTTPStatus, body: str | dict, content_type: str = None, *,
-                     use_css: bool = False, use_bootstrap: bool = False, use_self_api: bool = False,
+                     use_css: bool = False, use_bootstrap: bool = False, use_bootstrap_icons: bool = False, use_self_api: bool = False,
                      style_nonce: str = None, script_nonce: str = None):
     return {
         "statusCode": status.value,
         "headers": _generate_response_headers(
             content_type,
-            use_css=use_css, use_bootstrap=use_bootstrap, use_self_api=use_self_api,
+            use_css=use_css, use_bootstrap=use_bootstrap, use_bootstrap_icons=use_bootstrap_icons, use_self_api=use_self_api,
             style_nonce=style_nonce, script_nonce=script_nonce),
         "body": body if isinstance(body, str) else json.dumps(body),
     }
