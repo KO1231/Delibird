@@ -48,7 +48,7 @@
         </div>
 
 
-        <script {% if script_nonce %} nonce="{{ script_nonce }}" {% endif %}>
+        <script {%- if script_nonce %} nonce="{{ script_nonce }}" {%- endif %}>
           document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('password-form');
             const passwordInput = document.getElementById('password-input');
