@@ -82,7 +82,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
 
     # リンクがパスフレーズ付きの場合
-    nonce_model = None
     if link.is_protected():
         ## nonceかchallengeがなかったら、未認証として認証ページを表示する。
         if (NONCE_QUERY_KEY not in event.resolved_query_string_parameters) and (CHALLENGE_QUERY_KEY not in event.resolved_query_string_parameters):
@@ -108,6 +107,18 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 logger.info(f"Invalid challenge for domain: {domain}, slug: {request_path}")
                 nonce_model.mark_used()  # not successでもok
                 return protected_response(domain, request_path, "パスワードが正しくありません。")
+
+            # チャレンジ成功 -> nonce消込
+            try:
+                nonce_use_success, nonce_used_at = nonce_model.mark_used()
+            except Exception:
+                logger.exception(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
+                return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+            if not nonce_use_success:
+                # nonceがぎりぎり期限切れになった場合 or 競合リクエストで使用された場合
+                logger.info(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
+                return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
+
         except DelibirdNonceTableModel.DoesNotExist:
             # nonceがDB上に存在しない
             logger.info(f"Invalid nonce for domain: {domain}, slug: {request_path}")
@@ -138,18 +149,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         except Exception:
             logger.exception(f"Failed to append query parameters for domain: {domain}, slug: {request_path}, URL: {origin}")
             return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    # 使用したnonceの消込
-    if nonce_model:
-        try:
-            nonce_use_success, nonce_used_at = nonce_model.mark_used()
-        except Exception:
-            logger.exception(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
-            return error_response(HTTPStatus.INTERNAL_SERVER_ERROR)
-        if not nonce_use_success:
-            # nonceがぎりぎり期限切れになった場合 or 競合リクエストで使用された場合
-            logger.info(f"Failed to mark nonce as used for domain: {domain}, slug: {request_path}")
-            return protected_response(domain, request_path, "認証に失敗しました。もう一度お試しください。")
 
     # リンクの使用回数をインクリメント
     try:
