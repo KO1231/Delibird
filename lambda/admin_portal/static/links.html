@@ -516,6 +516,21 @@
 
         <!-- Custom JS -->
         <script {%- if script_nonce %} nonce="{{ script_nonce }}"{%- endif %}>
+            // パスフレーズのバリデーション
+            function validatePassphrase(passphrase) {
+                if (!passphrase || passphrase === '') {
+                    return { valid: true };
+                }
+
+                // 許可される文字: 英数字と -_/*+.!#$%&~@=^
+                const passphrasePattern = /^[a-zA-Z0-9\-_/*+.!#$%&~@=^]+$/;
+                if (!passphrasePattern.test(passphrase)) {
+                    return { valid: false, message: 'パスフレーズに使用できない文字が含まれています。\n使用可能な文字: 英数字、-_/*+.!#$%&~@=^' };
+                }
+
+                return { valid: true };
+            }
+
             // Query Omit チェックボックスの制御
             document.addEventListener('DOMContentLoaded', function() {
                 // Bootstrap ツールチップの初期化
@@ -598,6 +613,14 @@
                         return;
                     }
 
+                    // パスフレーズのバリデーション
+                    const passphrase = document.getElementById('passphrase').value;
+                    const passphraseValidation = validatePassphrase(passphrase);
+                    if (!passphraseValidation.valid) {
+                        alert(passphraseValidation.message);
+                        return;
+                    }
+
                     // JSONデータを作成
                     const data = {
                         link_slug: document.getElementById('linkSlug').value,
@@ -624,7 +647,6 @@
                         data.expired_origin = expiredOrigin;
                     }
 
-                    const passphrase = document.getElementById('passphrase').value;
                     if (passphrase) {
                         data.passphrase = passphrase;
                     }
@@ -773,6 +795,14 @@
                         return;
                     }
 
+                    // パスフレーズのバリデーション
+                    const editPassphrase = document.getElementById('editPassphrase').value;
+                    const passphraseValidation = validatePassphrase(editPassphrase);
+                    if (!passphraseValidation.valid) {
+                        alert(passphraseValidation.message);
+                        return;
+                    }
+
                     // JSONデータを作成
                     const data = {
                         domain: '{{ domain }}',
@@ -799,9 +829,8 @@
                         data.expired_origin = expiredOrigin;
                     }
 
-                    const passphrase = document.getElementById('editPassphrase').value;
-                    if (passphrase) {
-                        data.passphrase = passphrase;
+                    if (editPassphrase) {
+                        data.passphrase = editPassphrase;
                     }
 
                     const memo = document.getElementById('editMemo').value;
