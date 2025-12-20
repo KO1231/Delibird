@@ -50,6 +50,7 @@
             const errorMessage = document.getElementById('error-message');
 
             const nonce = '{{ request_nonce }}';
+            const default_error_message = '{{ default_error_message }}'
 
             form.addEventListener('submit', async function (e) {
               e.preventDefault();
@@ -66,6 +67,10 @@
 
               window.location.href = currentUrl.toString();
             });
+
+            if (default_error_message) {
+              showError(default_error_message);
+            }
 
             function showError(message) {
               errorMessage.textContent = message;
