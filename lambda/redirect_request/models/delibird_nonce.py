@@ -43,7 +43,7 @@ class DelibirdNonceTableModel(Model):
         now = get_jst_datetime_now()
         try:
             self.update(
-                actions=[DelibirdNonceTableModel.used_at.set(int(now.timestamp()))],
+                actions=[DelibirdNonceTableModel.used_at.set(now)],
                 condition=(DelibirdNonceTableModel.used_at.does_not_exist()) |
                           (Path(DelibirdNonceTableModel.used_at).is_type(NULL))
             )
