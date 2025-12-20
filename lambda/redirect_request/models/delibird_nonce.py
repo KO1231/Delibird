@@ -39,9 +39,11 @@ class DelibirdNonceTableModel(Model):
         if not self.is_active():
             # usedな状態でmark_usedされていないか、呼び出し時点で期限切れしていないか
             return False, None
+
+        now = get_jst_datetime_now()
         try:
             self.update(
-                actions=[DelibirdNonceTableModel.used_at.set(int(get_jst_datetime_now().timestamp()))],
+                actions=[DelibirdNonceTableModel.used_at.set(int(now.timestamp()))],
                 condition=(DelibirdNonceTableModel.used_at.does_not_exist()) |
                           (Path(DelibirdNonceTableModel.used_at).is_type(NULL))
             )
