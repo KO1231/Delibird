@@ -34,7 +34,7 @@
                         送信
                     </button>
                 </div>
-                <div id="error-message" class="form-error-message" style="display: none;"></div>
+                <div id="error-message" class="form-error-message hidden-field"></div>
             </form>
 
             <footer class="error-footer">
@@ -43,7 +43,7 @@
         </div>
 
 
-        <script{% if script_nonce %} nonce="{{ script_nonce }}"{% endif %}>
+        <script {% if script_nonce %} nonce="{{ script_nonce }}" {% endif %}>
           document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('password-form');
             const passwordInput = document.getElementById('password-input');
@@ -74,7 +74,7 @@
 
             function showError(message) {
               errorMessage.textContent = message;
-              errorMessage.style.display = 'block';
+              errorMessage.classList.remove('hidden-field');
               passwordInput.classList.add('input-error');
 
               // エラーアニメーション
@@ -92,12 +92,12 @@
             }
 
             function hideError() {
-              errorMessage.style.display = 'none';
+              errorMessage.classList.add('hidden-field');
               passwordInput.classList.remove('input-error');
             }
 
             passwordInput.addEventListener('input', function () {
-              if (errorMessage.style.display !== 'none') {
+              if (!errorMessage.classList.contains('hidden-field')) {
                 hideError();
               }
             });
