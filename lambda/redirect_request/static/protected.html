@@ -21,15 +21,20 @@
 
             <form id="password-form" class="password-form">
                 <div class="form-group">
-                    <input
-                            type="password"
-                            id="password-input"
-                            name="password"
-                            class="password-input"
-                            placeholder="パスワードを入力"
-                            required
-                            autocomplete="off"
-                    >
+                    <div class="password-field">
+                        <input
+                                type="password"
+                                id="password-input"
+                                name="password"
+                                class="password-input"
+                                placeholder="パスワードを入力"
+                                required
+                                autocomplete="off"
+                        >
+                        <button type="button" id="toggle-password" class="toggle-password" aria-label="パスワードの表示切替">
+                            <i class="bi bi-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     <button type="submit" class="submit-button">
                         送信
                     </button>
@@ -48,6 +53,8 @@
             const form = document.getElementById('password-form');
             const passwordInput = document.getElementById('password-input');
             const errorMessage = document.getElementById('error-message');
+            const togglePasswordButton = document.getElementById('toggle-password');
+            const togglePasswordIcon = togglePasswordButton?.querySelector('i');
 
             const nonce = '{{ request_nonce }}';
             const default_error_message = '{{ default_error_message }}'
@@ -77,7 +84,6 @@
               errorMessage.classList.remove('hidden-field');
               passwordInput.classList.add('input-error');
 
-              // エラーアニメーション
               passwordInput.animate([
                 {transform: 'translateX(0)'},
                 {transform: 'translateX(-10px)'},
@@ -100,6 +106,13 @@
               if (!errorMessage.classList.contains('hidden-field')) {
                 hideError();
               }
+            });
+
+            togglePasswordButton?.addEventListener('click', function () {
+              const isHidden = passwordInput.type === 'password';
+              passwordInput.type = isHidden ? 'text' : 'password';
+              togglePasswordIcon?.classList.toggle('bi-eye', !isHidden);
+              togglePasswordIcon?.classList.toggle('bi-eye-slash', isHidden);
             });
           });
         </script>

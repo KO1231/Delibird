@@ -26,6 +26,36 @@ body.error-protected .error-code i {
     align-items: center;
 }
 
+.password-field {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #777;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:focus-visible {
+    outline: 2px solid #4facfe;
+    border-radius: 4px;
+}
+
+.toggle-password i {
+    font-size: 1.1rem;
+}
+
 .password-input {
     width: 100%;
     max-width: 350px;
@@ -41,6 +71,10 @@ body.error-protected .error-code i {
     outline: none;
     border-color: #4facfe;
     box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
+
+.password-input {
+    padding-right: 2.75rem;
 }
 
 .password-input.input-error {
@@ -94,6 +128,11 @@ body.error-protected .error-code i {
 @media (max-width: 600px) {
     .password-input,
     .submit-button {
+        max-width: 100%;
+    }
+
+    .password-field,
+    .password-input {
         max-width: 100%;
     }
 
