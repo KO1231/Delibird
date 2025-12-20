@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from urllib.parse import quote
 from urllib.parse import urlparse
 
@@ -31,8 +32,11 @@ def parse_domain(domain: str) -> str:
     return domain
 
 
-def parse_query(query_data: dict[str, list[str]], key: str, *, allow_notfound: bool = False, expected_single_value: bool = True) -> str | list[str]:
-    if (key not in query_data) and (not allow_notfound):
+def parse_query(query_data: dict[str, list[str]], key: str, *, allow_notfound: bool = False, expected_single_value: bool = True) \
+        -> Optional[str | list[str]]:
+    if key not in query_data:
+        if allow_notfound:
+            return None
         raise ValueError(f"Invalid query key: {key}")
 
     v = query_data[key]
