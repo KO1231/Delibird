@@ -38,7 +38,7 @@ def _create_protected_request_nonce(domain: str, slug: str) -> str:
     model = DelibirdNonceTableModel(nonce)
     model.domain = domain
     model.slug = slug
-    model.expired_timestamp = int((get_jst_datetime_now() + timedelta(seconds=30)).timestamp())
+    model.expired_timestamp = int((get_jst_datetime_now() + timedelta(seconds=_NONCE_LIFETIME_SECONDS)).timestamp())
     model.save(condition=DelibirdNonceTableModel.nonce.does_not_exist())
 
     return nonce
