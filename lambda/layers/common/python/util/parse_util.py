@@ -29,3 +29,14 @@ def parse_domain(domain: str) -> str:
     if (not domain) or (domain not in _ALLOWED_DOMAIN):
         raise ValueError(f"Invalid or missing domain: {domain}, allowed: {_ALLOWED_DOMAIN}")
     return domain
+
+
+def parse_query(query_data: dict[str, list[str]], key: str, *, allow_notfound: bool = False, expected_single_value: bool = True) -> str | list[str]:
+    if (key not in query_data) and (not allow_notfound):
+        raise ValueError(f"Invalid query key: {key}")
+
+    v = query_data[key]
+    if expected_single_value and len(v) != 1:
+        raise ValueError(f"Invalid query value: {v}")
+
+    return v if (not expected_single_value) else v[0]
