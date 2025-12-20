@@ -14,6 +14,11 @@ module "aws_iam" {
     arn  = module.aws_dynamodb.link_table.arn
   }
 
+  ddb_link_nonce_table = {
+    name = module.aws_dynamodb.link_nonce_table.name
+    arn  = module.aws_dynamodb.link_nonce_table.arn
+  }
+
   lambda_redirect_request = {
     name = module.aws_lambda.lambda_redirect_request.function_name
     arn  = module.aws_lambda.lambda_redirect_request.arn
