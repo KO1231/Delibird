@@ -77,7 +77,7 @@ class DelibirdLink:
         if not link.status.is_redirection:
             raise ValueError(f"Status code {link.status} is not a redirection status.")
         # passphrase
-        if link._passphrase.isspace():
+        if (link._passphrase is not None) and link._passphrase.isspace():
             link._passphrase = None
 
     def __post_init__(self):
