@@ -40,6 +40,11 @@ module "aws_lambda" {
     arn  = module.aws_dynamodb.link_table.arn
   }
 
+  ddb_link_nonce_table = {
+    name = module.aws_dynamodb.link_nonce_table.name
+    arn  = module.aws_dynamodb.link_nonce_table.arn
+  }
+
   role_redirect_request = {
     name = module.aws_iam.role_lambda_redirect_request.name
     arn  = module.aws_iam.role_lambda_redirect_request.arn
