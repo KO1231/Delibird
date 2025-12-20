@@ -23,6 +23,8 @@ from util.logger_util import setup_logger
 _REGION = os.environ["AWS_REGION"]
 _MAX_SLUG_LENGTH = 255
 _SLUG_PATTERN = re.compile(r'^[a-zA-Z0-9\-_]+(?:/[a-zA-Z0-9\-_]+)*$', re.ASCII)
+_MAX_PASSPHRASE_LENGTH = 255
+_PASSPHRASE_PATTERN = re.compile(r'^[A-Za-z0-9\-_/*+.!#$%&~@=^]+$', re.ASCII)
 
 logger = setup_logger("delibird.link_table", logging.INFO)
 
@@ -77,8 +79,11 @@ class DelibirdLink:
         if not link.status.is_redirection:
             raise ValueError(f"Status code {link.status} is not a redirection status.")
         # passphrase
-        if (link._passphrase is not None) and link._passphrase.isspace():
-            link._passphrase = None
+        if link._passphrase is not None:
+            if len(link._passphrase) == 0:
+                link._passphrase = None
+            elif (len(link._passphrase) > _MAX_PASSPHRASE_LENGTH) or (not _PASSPHRASE_PATTERN.fullmatch(link._passphrase)):
+                raise ValueError("Invalid passphrase.")
 
     def __post_init__(self):
         if self.query_whitelist is None:
