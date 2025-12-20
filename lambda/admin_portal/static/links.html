@@ -207,6 +207,7 @@
                                                 data-max-uses="{{ link.max_uses or '' }}"
                                                 data-expiration="{{ link.expiration_date.strftime('%Y-%m-%dT%H:%M') if link.expiration_date else '' }}"
                                                 data-expired-origin="{{ link.expired_origin or '' }}"
+                                                data-passphrase="{{ link._passphrase or '' }}"
                                                 data-query-omit="{{ 'true' if link.query_omit else 'false' }}"
                                                 data-query-whitelist="{{ link.query_whitelist|join(',') if link.query_whitelist else '' }}"
                                                 data-memo="{{ link.memo or '' }}"
@@ -324,6 +325,19 @@
                                     <input type="url" class="form-control" id="expiredOrigin" name="expired_origin"
                                            placeholder="https://example.com/expired">
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
+                                </div>
+
+                                <!-- Passphrase -->
+                                <div class="mb-3">
+                                    <label for="passphrase" class="form-label">Passphrase</label>
+                                    <div class="password-field-wrapper">
+                                        <input type="password" class="form-control password-input-field" id="passphrase" name="passphrase"
+                                               placeholder="パスワードを入力" autocomplete="off">
+                                        <button type="button" class="password-toggle-btn" id="togglePassphrase" aria-label="パスワードの表示切替">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">リンクにアクセスするためのパスワード（オプション）</div>
                                 </div>
 
                                 <!-- Memo -->
@@ -450,6 +464,19 @@
                                     <div class="form-text">期限切れ時のリダイレクト先URL（オプション）</div>
                                 </div>
 
+                                <!-- Passphrase -->
+                                <div class="mb-3">
+                                    <label for="editPassphrase" class="form-label">Passphrase</label>
+                                    <div class="password-field-wrapper">
+                                        <input type="password" class="form-control password-input-field" id="editPassphrase" name="passphrase"
+                                               placeholder="パスワードを入力" autocomplete="off">
+                                        <button type="button" class="password-toggle-btn" id="toggleEditPassphrase" aria-label="パスワードの表示切替">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">リンクにアクセスするためのパスワード（オプション）</div>
+                                </div>
+
                                 <!-- Memo -->
                                 <div class="mb-3">
                                     <label for="editMemo" class="form-label">Memo</label>
@@ -497,6 +524,32 @@
                 const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
+
+                // パスワード表示トグル機能（作成モーダル）
+                const togglePassphraseBtn = document.getElementById('togglePassphrase');
+                const passphraseInput = document.getElementById('passphrase');
+                if (togglePassphraseBtn && passphraseInput) {
+                    togglePassphraseBtn.addEventListener('click', function() {
+                        const isPassword = passphraseInput.type === 'password';
+                        passphraseInput.type = isPassword ? 'text' : 'password';
+                        const icon = togglePassphraseBtn.querySelector('i');
+                        icon.classList.toggle('bi-eye');
+                        icon.classList.toggle('bi-eye-slash');
+                    });
+                }
+
+                // パスワード表示トグル機能（編集モーダル）
+                const toggleEditPassphraseBtn = document.getElementById('toggleEditPassphrase');
+                const editPassphraseInput = document.getElementById('editPassphrase');
+                if (toggleEditPassphraseBtn && editPassphraseInput) {
+                    toggleEditPassphraseBtn.addEventListener('click', function() {
+                        const isPassword = editPassphraseInput.type === 'password';
+                        editPassphraseInput.type = isPassword ? 'text' : 'password';
+                        const icon = toggleEditPassphraseBtn.querySelector('i');
+                        icon.classList.toggle('bi-eye');
+                        icon.classList.toggle('bi-eye-slash');
+                    });
+                }
 
                 const queryOmitCheckbox = document.getElementById('queryOmit');
                 const queryWhitelistContainer = document.getElementById('queryWhitelistContainer');
@@ -572,6 +625,11 @@
                         data.expired_origin = expiredOrigin;
                     }
 
+                    const passphrase = document.getElementById('passphrase').value;
+                    if (passphrase) {
+                        data.passphrase = passphrase;
+                    }
+
                     const memo = document.getElementById('memo').value;
                     if (memo) {
                         data.memo = memo;
@@ -622,6 +680,18 @@
                 createLinkModal.addEventListener('hidden.bs.modal', function() {
                     createLinkForm.reset();
                     updateQueryWhitelistState();
+
+                    // パスワード入力欄を非表示状態にリセット
+                    if (passphraseInput) {
+                        passphraseInput.type = 'password';
+                    }
+                    if (togglePassphraseBtn) {
+                        const icon = togglePassphraseBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('bi-eye-slash');
+                            icon.classList.add('bi-eye');
+                        }
+                    }
                 });
 
                 // === 編集機能 ===
@@ -655,6 +725,7 @@
                         const maxUses = this.getAttribute('data-max-uses');
                         const expiration = this.getAttribute('data-expiration');
                         const expiredOrigin = this.getAttribute('data-expired-origin');
+                        const passphrase = this.getAttribute('data-passphrase');
                         const queryOmit = this.getAttribute('data-query-omit') === 'true';
                         const queryWhitelist = this.getAttribute('data-query-whitelist');
                         const memo = this.getAttribute('data-memo');
@@ -672,6 +743,17 @@
                         document.getElementById('editQueryWhitelist').value = queryWhitelist;
                         document.getElementById('editMemo').value = memo;
                         document.getElementById('editTag').value = tag;
+
+                        // パスワードを表示（既存のパスワードを確認できるように）
+                        document.getElementById('editPassphrase').value = passphrase;
+                        document.getElementById('editPassphrase').type = 'password';
+                        if (toggleEditPassphraseBtn) {
+                            const icon = toggleEditPassphraseBtn.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('bi-eye-slash');
+                                icon.classList.add('bi-eye');
+                            }
+                        }
 
                         // Query Whitelist の状態を更新
                         updateEditQueryWhitelistState();
@@ -716,6 +798,11 @@
                     const expiredOrigin = document.getElementById('editExpiredOrigin').value;
                     if (expiredOrigin) {
                         data.expired_origin = expiredOrigin;
+                    }
+
+                    const passphrase = document.getElementById('editPassphrase').value;
+                    if (passphrase) {
+                        data.passphrase = passphrase;
                     }
 
                     const memo = document.getElementById('editMemo').value;
@@ -766,6 +853,18 @@
                 editLinkModal.addEventListener('hidden.bs.modal', function() {
                     editLinkForm.reset();
                     updateEditQueryWhitelistState();
+
+                    // パスワード入力欄を非表示状態にリセット
+                    if (editPassphraseInput) {
+                        editPassphraseInput.type = 'password';
+                    }
+                    if (toggleEditPassphraseBtn) {
+                        const icon = toggleEditPassphraseBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('bi-eye-slash');
+                            icon.classList.add('bi-eye');
+                        }
+                    }
                 });
             });
         </script>
