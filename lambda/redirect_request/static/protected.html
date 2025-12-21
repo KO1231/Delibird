@@ -46,7 +46,9 @@
                 <p>&copy; 2025 Kazuhiro Oka</p>
             </footer>
         </div>
-
+        {%- if (STATIC_FOOTER is defined) and (STATIC_FOOTER is not none) %}
+        <div class="env-info"><p>{{STATIC_FOOTER}}</p></div>
+        {%- endif %}
 
         <script {%- if script_nonce %} nonce="{{ script_nonce }}" {%- endif %}>
           document.addEventListener('DOMContentLoaded', function () {

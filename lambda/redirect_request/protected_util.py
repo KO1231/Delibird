@@ -5,7 +5,7 @@ from http import HTTPStatus
 from models.delibird_nonce import DelibirdNonceTableModel
 from util.date_util import get_jst_datetime_now
 from util.nonce_util import create_nonce
-from util.response_util import success_response
+from util.response_util import success_response, STATIC_FOOTER
 from util.static_resource_util import load_function_html
 
 NONCE_QUERY_KEY = "n"
@@ -24,7 +24,8 @@ def protected_response(domain: str, slug: str, error_message: str = ""):
         "challenge_query_key": CHALLENGE_QUERY_KEY,
         "nonce_query_key": NONCE_QUERY_KEY,
         "script_nonce": script_nonce,
-        "request_nonce": request_nonce
+        "request_nonce": request_nonce,
+        "STATIC_FOOTER": STATIC_FOOTER if STATIC_FOOTER else None
     })
 
     return success_response(HTTPStatus.UNAUTHORIZED, html_content,
