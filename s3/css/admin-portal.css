@@ -20,6 +20,20 @@
     background-color: #0d6efd;
 }
 
+.env-info {
+    position: fixed;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    padding: 0;
+}
+
+.env-info p {
+    margin: 0;
+    font-size: 0.65rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: rgba(165, 165, 165, 0.90);
+}
+
 .status-badge {
     min-width: 60px;
 }

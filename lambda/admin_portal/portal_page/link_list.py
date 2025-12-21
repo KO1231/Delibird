@@ -9,7 +9,7 @@ from portal_page.page import AdminPortalPage
 from util.date_util import get_jst_datetime_now
 from util.logger_util import setup_logger
 from util.nonce_util import create_nonce
-from util.response_util import error_response, success_response
+from util.response_util import error_response, success_response, STATIC_FOOTER
 from util.static_resource_util import load_function_html
 
 logger = setup_logger("admin_portal.link_list_page")
@@ -36,7 +36,8 @@ class PortalListPage(AdminPortalPage):
             'inactive_count': inactive_count,
             'now': now,
             'style_nonce': style_nonce,
-            'script_nonce': script_nonce
+            'script_nonce': script_nonce,
+            "STATIC_FOOTER": STATIC_FOOTER if STATIC_FOOTER else None
         })
 
     @classmethod
