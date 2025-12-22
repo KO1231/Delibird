@@ -24,7 +24,13 @@ mkdir -p "${PYTHON_DIR}"
 # requirements.txtから依存関係をインストール
 if [ -f "${LAYER_DIR}/python/requirements.txt" ]; then
     echo "Installing dependencies from requirements.txt..."
-    pip install -r "${LAYER_DIR}/python/requirements.txt" -t "${PYTHON_DIR}" --upgrade
+    # Lambdaを/var/taskにマウントして、buildディレクトリを/delibird/outputにマウント
+    # /delibird/outputを通して、buildディレクトリにパッケージをインストール
+    docker run --rm \
+    -v "${LAYER_DIR}/python":/var/task \
+    -v "${PYTHON_DIR}":/delibird/output \
+    public.ecr.aws/sam/build-python3.13:latest-arm64 \
+    pip install -r "requirements.txt" -t "/delibird/output" --upgrade
 else
     echo "Error: No requirements.txt found" >&2
     exit 1
