@@ -1,4 +1,12 @@
 # Delibird
+Delibird is a URL shortening system with various features such as measurement, password protection, and redirects with digital signatures, in addition to simple redirection.
+
+This application supports custom domains, enabling domain-specific management pages and user management, and can be implemented with a fully serverless architecture using AWS Lambda.
+
+It allows you to deploy your own shortened link service with full access to all features, delivering far superior cost performance compared to existing cloud-based shortening services.
+
+<img width="1512" height="753" alt="Delibird" src="https://github.com/user-attachments/assets/acbc692e-908d-42c7-b69a-53a24ea75231" />
+
 
 ## Requirements
 

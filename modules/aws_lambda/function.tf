@@ -1,13 +1,53 @@
+# Lambda Layerのソースディレクトリとビルド出力先
+locals {
+  lambda_dir = "${path.root}/../../lambda"
+}
+
+# build functions
+resource "null_resource" "build_redirect_request" {
+  triggers = {
+    files = sha256(join("", [
+      for f in fileset("${local.lambda_dir}/redirect_request", "**/*") :
+      filesha256("${local.lambda_dir}/redirect_request/${f}")
+    ]))
+    build_script = filesha256("${local.lambda_dir}/build.sh")
+  }
+
+  provisioner "local-exec" {
+    command     = "chmod +x ${local.lambda_dir}/build.sh && LAMBDA_NAME=redirect_request BUILD_OUTPUT_DIR=${path.root}/.build ${local.lambda_dir}/build.sh"
+    working_dir = path.root
+  }
+}
+
+resource "null_resource" "build_admin_portal" {
+  triggers = {
+    files = sha256(join("", [
+      for f in fileset("${local.lambda_dir}/admin_portal", "**/*") :
+      filesha256("${local.lambda_dir}/admin_portal/${f}")
+    ]))
+    build_script = filesha256("${local.lambda_dir}/build.sh")
+  }
+
+  provisioner "local-exec" {
+    command     = "chmod +x ${local.lambda_dir}/build.sh && LAMBDA_NAME=admin_portal BUILD_OUTPUT_DIR=${path.root}/.build ${local.lambda_dir}/build.sh"
+    working_dir = path.root
+  }
+}
+
 data "archive_file" "redirect_request" {
   type        = "zip"
-  source_dir  = "${path.root}/../../lambda/redirect_request"
+  source_dir  = "${path.root}/.build/redirect_request"
   output_path = "${path.root}/.build/redirect_request.zip"
+
+  depends_on = [null_resource.build_redirect_request]
 }
 
 data "archive_file" "admin_portal" {
   type        = "zip"
-  source_dir  = "${path.root}/../../lambda/admin_portal"
+  source_dir  = "${path.root}/.build/admin_portal"
   output_path = "${path.root}/.build/admin_portal.zip"
+
+  depends_on = [null_resource.build_admin_portal]
 }
 
 resource "aws_lambda_function" "redirect_request" {
