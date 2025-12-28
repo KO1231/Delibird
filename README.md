@@ -18,9 +18,9 @@ It allows you to deploy your own shortened link service with full access to all 
 
 ## Installation
 
-1. (If you use pyenv, and did not install Python 3.13.5 yet)
+1. (If you use pyenv, and did not install Python 3.13.9 yet)
    ```bash
-   pyenv install 3.13.5
+   pyenv install 3.13.9
    ```
 
 2. (If you use tfenv, and did not install Terraform v1.14.0 yet)
